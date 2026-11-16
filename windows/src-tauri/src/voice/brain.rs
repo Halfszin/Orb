@@ -15,11 +15,13 @@ const FORGET_AFTER: Duration = Duration::from_secs(90);
 pub struct Brain {
     messages: Vec<Value>,
     last: Instant,
+    /// Added to the system prompt: the panel's "Memória" (empty for the voice).
+    pub extra: String,
 }
 
 impl Default for Brain {
     fn default() -> Self {
-        Self { messages: Vec::new(), last: Instant::now() }
+        Self { messages: Vec::new(), last: Instant::now(), extra: String::new() }
     }
 }
 
@@ -111,7 +113,7 @@ impl Brain {
         self.messages.push(json!({ "role": "user", "content": transcript }));
         self.trim();
         let pills = super::ask_island(app, "pills", json!({ "action": "list" })).unwrap_or_default();
-        let system = system_prompt(&pills);
+        let system = system_prompt(&pills) + &self.extra;
         let tools = tools();
         let chat_model = app
             .try_state::<crate::Shared>()

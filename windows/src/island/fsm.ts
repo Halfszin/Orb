@@ -34,6 +34,11 @@ export class IslandStateMachine {
    * General → Open on hover, off by default), as IslandStateMachine.openOnHover.
    */
   openOnHover = false;
+  /**
+   * Resting on the compact island opens the Orb panel (panel.html) instead of
+   * the island itself, when set. Takes precedence over openOnHover.
+   */
+  hoverPanel: (() => void) | null = null;
   /** Grace period after the pointer leaves a hover-opened island, seconds. */
   hoverCloseDelay = 0.6;
   /** How long the pointer rests on the compact island before Open on hover opens it, seconds. */
@@ -71,12 +76,12 @@ export class IslandStateMachine {
         // lands on it far more often than on a Mac's, on its way elsewhere.
         this.cancelTimers();
         this.transition("petit");
-        if (this.openOnHover && !this.pinned) this.scheduleHoverOpen();
+        if ((this.openOnHover || this.hoverPanel) && !this.pinned) this.scheduleHoverOpen();
         break;
       case "petit":
         this.clear("petitHide");
         // Open on hover: once the pointer rests on the compact island.
-        if (this.openOnHover && !this.pinned) this.scheduleHoverOpen();
+        if ((this.openOnHover || this.hoverPanel) && !this.pinned) this.scheduleHoverOpen();
         break;
       case "home":
         this.clear("homeCollapse");
@@ -190,7 +195,12 @@ export class IslandStateMachine {
     this.clear("hoverOpen");
     this.hoverOpen = window.setTimeout(() => {
       this.hoverOpen = null;
-      if (this.state !== "petit" || this.pinned || !this.openOnHover) return;
+      if (this.state !== "petit" || this.pinned) return;
+      if (this.hoverPanel) {
+        this.hoverPanel();
+        return;
+      }
+      if (!this.openOnHover) return;
       this.cancelTimers();
       this.byHover = true;
       this.transition("home");

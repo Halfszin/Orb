@@ -400,3 +400,28 @@ test("open on hover: an island opened by an alert keeps the normal delay", () =>
   seconds(2);
   assert.equal(fsm.state, "petit");
 });
+
+test("resting on the compact island opens the Orb panel, not the island", () => {
+  let opened = 0;
+  fsm.hoverPanel = () => opened++;
+  fsm.mouseEntered(); // hidden → petit
+  seconds(0.4);
+  assert.equal(opened, 0);
+  seconds(0.1);
+  assert.equal(opened, 1);
+  assert.equal(fsm.state, "petit");
+});
+
+test("the panel waits while an alert is pinned, and the pointer leaving cancels it", () => {
+  let opened = 0;
+  fsm.hoverPanel = () => opened++;
+  fsm.pinned = true;
+  fsm.mouseEntered();
+  seconds(1);
+  assert.equal(opened, 0);
+  fsm.pinned = false;
+  fsm.mouseEntered();
+  fsm.mouseLeft();
+  seconds(1);
+  assert.equal(opened, 0);
+});

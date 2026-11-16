@@ -445,7 +445,7 @@ fn music(app: &AppHandle, input: &Value) -> (String, bool) {
 
 /// Opens an app whose name matches: a Start menu shortcut on Windows, a
 /// .desktop entry on Linux. Nothing else is ever run.
-fn open_app(name: &str) -> (String, bool) {
+pub(crate) fn open_app(name: &str) -> (String, bool) {
     let wanted = wake::normalize(name);
     if wanted.is_empty() {
         return ("no name".into(), false);

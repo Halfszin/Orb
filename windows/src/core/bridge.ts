@@ -234,6 +234,19 @@ export const Bridge = {
   listMonitors: () => call<{ key: string; label: string }[]>("list_monitors"),
 
   openUrl: (url: string) => call<void>("open_url", { url }),
+
+  // ── Orb panel (src-tauri/src/panel.rs) ────────────────────────────────────
+  panelShow: () => call<void>("panel_show"),
+  panelHide: () => call<void>("panel_hide"),
+  /** One typed turn with the assistant; `memory` goes into its prompt. Throws the reason it couldn't answer. */
+  assistantAsk: (text: string, memory: string[]) => callOrThrow<string>("assistant_ask", { text, memory }),
+  /** Opens an app by name; throws when there is none. */
+  panelOpenApp: (name: string) => callOrThrow<string>("panel_open_app", { name }),
+  /** What was copied lately, newest first (kept in memory only). */
+  clipboardHistory: () => call<string[]>("clipboard_history"),
+  clipboardCopy: (text: string) => call<boolean>("clipboard_copy", { text }),
+  clipboardClear: () => call<void>("clipboard_clear"),
+  pcInfo: () => call<PcInfo>("pc_info"),
   /** Opens a GitLab link only when it belongs to the configured instance. */
   openGitLabUrl: (url: string) => call<void>("open_gitlab_url", { url }),
   /** Opens the configured Gitea instance without exposing its URL to the page. */
@@ -524,6 +537,17 @@ export const Bridge = {
   /** The release's page on github.com. */
   updateOpenPage: () => call<void>("update_open_page"),
 };
+
+export interface PcInfo {
+  host: string;
+  os: string;
+  cpu: number;
+  memUsed: number;
+  memTotal: number;
+  diskUsed: number;
+  diskTotal: number;
+  uptimeSecs: number;
+}
 
 export type SpotifyAction = "playPause" | "next" | "previous" | "seek" | "shuffle" | "repeat" | "volume";
 

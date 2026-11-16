@@ -416,6 +416,7 @@ fn now_ms() -> f64 {
 fn emit_state(app: &AppHandle, state: &PlayerState) {
     use tauri::Emitter;
     let _ = app.emit_to(crate::island::WINDOW_LABEL, STATE_EVENT, state);
+    let _ = app.emit_to(crate::panel::LABEL, STATE_EVENT, state);
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────
@@ -1042,11 +1043,9 @@ mod linux {
         {
             let mut art = ART.lock().unwrap();
             if let Some((_, data)) = art.entries.iter().find(|(u, _)| *u == url) {
-                let _ = app.emit_to(
-                    crate::island::WINDOW_LABEL,
-                    ARTWORK_EVENT,
-                    Artwork { art_url: url.clone(), data_url: data.clone() },
-                );
+                for label in [crate::island::WINDOW_LABEL, crate::panel::LABEL] {
+                    let _ = app.emit_to(label, ARTWORK_EVENT, Artwork { art_url: url.clone(), data_url: data.clone() });
+                }
                 return;
             }
             if art.loading.as_deref() == Some(url.as_str()) {
@@ -1111,6 +1110,7 @@ mod linux {
         // Only if it is still the track on screen.
         let current = SHARED.lock().unwrap().state.track.as_ref().and_then(|t| t.art_url.clone());
         if current.as_deref() == Some(url.as_str()) {
+            let _ = app.emit_to(crate::panel::LABEL, ARTWORK_EVENT, Artwork { art_url: url.clone(), data_url: data.clone() });
             let _ = app.emit_to(crate::island::WINDOW_LABEL, ARTWORK_EVENT, Artwork { art_url: url, data_url: data });
         }
     }

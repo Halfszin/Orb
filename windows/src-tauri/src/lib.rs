@@ -27,6 +27,7 @@ mod log;
 mod mail;
 mod net;
 mod notes;
+mod panel;
 mod openai_compat;
 mod phone_link;
 mod pipe;
@@ -894,10 +895,19 @@ pub fn run() {
         })
         .manage(Pending::default())
         .manage(Chat::default())
+        .manage(panel::Assistant::default())
         .manage(shortcuts::Registry::default())
         .manage(recap::load())
         .invoke_handler(tauri::generate_handler![
             boot,
+            panel::panel_show,
+            panel::panel_hide,
+            panel::assistant_ask,
+            panel::panel_open_app,
+            panel::clipboard_history,
+            panel::clipboard_copy,
+            panel::clipboard_clear,
+            panel::pc_info,
             mail::mail_refresh,
             mail::mail_more,
             mail::mail_search,
@@ -1092,6 +1102,7 @@ pub fn run() {
             // Same rule for Mochi's desktop window and the dictation pill.
             desktop::setup(&handle);
             flow::setup(&handle);
+            panel::setup(&handle);
             notes::setup(&handle);
 
             if let Some(win) = island::window(&handle) {
