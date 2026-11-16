@@ -37,7 +37,7 @@ export const GREETING_W = 640;
 export const GREETING_H = 150;
 const C0 = { x: 320, y: 90 };
 const HB = 58;
-export const ASP = 1.34;
+export const ASP = 1.0; // the Orb is round
 const EAR_X = 40;
 const EAR_HB = 17;
 const CARD = { x: 10, y: 36, w: 620, h: 104 };
@@ -366,7 +366,7 @@ function rr(x: CanvasRenderingContext2D, X: number, Y: number, W: number, H: num
 }
 
 function mochiPath(hw: number, hh: number): Path2D {
-  const n = 3.2;
+  const n = 2; // circle
   const p = new Path2D();
   const steps = 96;
   for (let i = 0; i <= steps; i++) {
@@ -388,8 +388,8 @@ function whiteFill(
   x0: number, y0: number, x1: number, y1: number,
 ) {
   const g = x.createLinearGradient(x0, y0, x1, y1);
-  g.addColorStop(0, "rgb(251,251,252)");
-  g.addColorStop(1, "rgb(231,233,236)");
+  g.addColorStop(0, "rgb(141,122,255)");
+  g.addColorStop(1, "rgb(36,24,104)");
   x.fillStyle = g;
   x.fill(path);
 }
@@ -416,8 +416,8 @@ function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose)
   x.rotate(h.ang);
   rr(x, -h.L / 2, -h.T / 2, h.L, h.T, h.T / 2);
   const g = x.createLinearGradient(h.L / 2, -h.T / 2, -h.L / 2, h.T / 2);
-  g.addColorStop(0, "rgb(251,251,252)");
-  g.addColorStop(1, "rgb(231,233,236)");
+  g.addColorStop(0, "rgb(141,122,255)");
+  g.addColorStop(1, "rgb(36,24,104)");
   x.fillStyle = g;
   x.fill();
   x.strokeStyle = "rgba(0,0,0,0.08)";
@@ -470,8 +470,8 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
   // Eyes
   x.save();
   x.clip(body);
-  x.fillStyle = "#16171A";
-  x.strokeStyle = "#16171A";
+  x.fillStyle = "#F0F4FF";
+  x.strokeStyle = "#F0F4FF";
   const er = p.hb * 0.06;
   const sp = p.hb * 0.19;
   const lx = p.lookX * hw * 0.42;

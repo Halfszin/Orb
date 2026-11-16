@@ -400,7 +400,7 @@ export function troupe(canvas: HTMLCanvasElement, cast: MochiSpec[], width: numb
 }
 
 /** One Orb alone (the sidebar's logo, an empty page). */
-export function liveMochi(canvas: HTMLCanvasElement, color = "#F5F6F8", state: BotStateName = "idle") {
+export function liveMochi(canvas: HTMLCanvasElement, color = "#8D7AFF", state: BotStateName = "idle") {
   const engine = new BotEngine();
   engine.bodyColor = hexToRGB(color);
   engine.setState(state, true);
@@ -439,14 +439,14 @@ const m = (color: string, size: number, start: number, extra: Partial<MochiSpec>
 });
 
 export const THEMES: Record<string, Theme> = {
-  dictation: { color: "#FB923C", cast: [m("#F5F6F8", 66, 0.2), m("#FB923C", 52, 0.65), m("#F472B6", 44, 0.95, { outfit: "bow" })] },
+  dictation: { color: "#FB923C", cast: [m("#8D7AFF", 66, 0.2), m("#FB923C", 52, 0.65), m("#F472B6", 44, 0.95, { outfit: "bow" })] },
   notes: { color: "#3B9EFF", cast: [m("#3B9EFF", 58, 0.1, { outfit: "roundGlasses" }), m("#34D399", 50, 0.5), m("#A78BFA", 46, 0.9)] },
-  insights: { color: "#34D399", cast: [m("#F7B32B", 62, 0.3, { outfit: "crown" }), m("#34D399", 48, 0.75), m("#F5F6F8", 40, 1)] },
-  dictionary: { color: "#A78BFA", cast: [m("#A78BFA", 60, 0.2, { outfit: "roundGlasses" }), m("#F5F6F8", 48, 0.8, { outfit: "beanie" })] },
-  snippets: { color: "#F7B32B", cast: [m("#F7B32B", 56, 0.15, { state: "working" }), m("#FB923C", 46, 0.6), m("#F5F6F8", 40, 0.95)] },
-  styles: { color: "#F472B6", cast: [m("#F472B6", 60, 0.25, { outfit: "sunglasses" }), m("#F5F6F8", 48, 0.7, { outfit: "bow" }), m("#22D3EE", 42, 1, { outfit: "partyHat" })] },
-  flowsettings: { color: "#8E939C", cast: [m("#F5F6F8", 56, 0.3), m("#8E939C", 46, 0.95, { state: "sleeping", roams: false })] },
-  general: { color: "#8E939C", cast: [m("#F5F6F8", 60, 0.4, { outfit: "scarf" }), m("#FB923C", 46, 0.85)] },
+  insights: { color: "#34D399", cast: [m("#F7B32B", 62, 0.3, { outfit: "crown" }), m("#34D399", 48, 0.75), m("#8D7AFF", 40, 1)] },
+  dictionary: { color: "#A78BFA", cast: [m("#A78BFA", 60, 0.2, { outfit: "roundGlasses" }), m("#8D7AFF", 48, 0.8, { outfit: "beanie" })] },
+  snippets: { color: "#F7B32B", cast: [m("#F7B32B", 56, 0.15, { state: "working" }), m("#FB923C", 46, 0.6), m("#8D7AFF", 40, 0.95)] },
+  styles: { color: "#F472B6", cast: [m("#F472B6", 60, 0.25, { outfit: "sunglasses" }), m("#8D7AFF", 48, 0.7, { outfit: "bow" }), m("#22D3EE", 42, 1, { outfit: "partyHat" })] },
+  flowsettings: { color: "#8E939C", cast: [m("#8D7AFF", 56, 0.3), m("#8E939C", 46, 0.95, { state: "sleeping", roams: false })] },
+  general: { color: "#8E939C", cast: [m("#8D7AFF", 60, 0.4, { outfit: "scarf" }), m("#FB923C", 46, 0.85)] },
   pills: {
     color: "#F5A524",
     cast: [m("#F5A524", 44, 0.05), m("#3B9EFF", 44, 0.3), m("#34D399", 44, 0.55), m("#E07950", 44, 0.8), m("#A78BFA", 44, 1)],
@@ -455,14 +455,14 @@ export const THEMES: Record<string, Theme> = {
     color: "#3B9EFF",
     cast: [m("#3B9EFF", 56, 0.1, { state: "working", roams: false }), m("#E07950", 50, 0.5, { state: "thinking", roams: false }), m("#34D399", 50, 0.9)],
   },
-  chat: { color: "#E07950", cast: [m("#E07950", 58, 0.3, { state: "thinking", roams: false }), m("#F5F6F8", 48, 0.85)] },
+  chat: { color: "#E07950", cast: [m("#E07950", 58, 0.3, { state: "thinking", roams: false }), m("#8D7AFF", 48, 0.85)] },
   integrations: { color: "#7C5CFF", cast: [m("#7C5CFF", 54, 0.15), m("#22D3EE", 46, 0.55), m("#F7B32B", 42, 0.95)] },
-  phone: { color: "#3DDC84", cast: [m("#3DDC84", 56, 0.25), m("#F5F6F8", 46, 0.8, { outfit: "beanie" })] },
-  voice: { color: "#F97316", cast: [m("#F97316", 60, 0.3), m("#F5F6F8", 48, 0.85, { outfit: "roundGlasses" })] },
-  shortcuts: { color: "#6366F1", cast: [m("#6366F1", 56, 0.2, { outfit: "sunglasses" }), m("#F5F6F8", 46, 0.8)] },
-  mailOverview: { color: "#2F8CFF", cast: [m("#2F8CFF", 58, 0.2, { state: "working" }), m("#F5F6F8", 46, 0.7), m("#F5A524", 40, 1)] },
+  phone: { color: "#3DDC84", cast: [m("#3DDC84", 56, 0.25), m("#8D7AFF", 46, 0.8, { outfit: "beanie" })] },
+  voice: { color: "#F97316", cast: [m("#F97316", 60, 0.3), m("#8D7AFF", 48, 0.85, { outfit: "roundGlasses" })] },
+  shortcuts: { color: "#6366F1", cast: [m("#6366F1", 56, 0.2, { outfit: "sunglasses" }), m("#8D7AFF", 46, 0.8)] },
+  mailOverview: { color: "#2F8CFF", cast: [m("#2F8CFF", 58, 0.2, { state: "working" }), m("#8D7AFF", 46, 0.7), m("#F5A524", 40, 1)] },
   mailRules: { color: "#34D399", cast: [m("#34D399", 56, 0.3, { outfit: "roundGlasses" }), m("#8E939C", 46, 0.85)] },
-  mailBanned: { color: "#FF453A", cast: [m("#FF453A", 54, 0.25, { outfit: "sunglasses" }), m("#F5F6F8", 44, 0.8, { state: "sleeping", roams: false })] },
+  mailBanned: { color: "#FF453A", cast: [m("#FF453A", 54, 0.25, { outfit: "sunglasses" }), m("#8D7AFF", 44, 0.8, { state: "sleeping", roams: false })] },
   mailVIP: { color: "#F5A524", cast: [m("#F5A524", 60, 0.3, { outfit: "crown" }), m("#2F8CFF", 46, 0.85)] },
 };
 
@@ -517,7 +517,7 @@ export function glowCard(color: string, ...content: (HTMLElement | string)[]): H
 }
 
 /** An empty page: a Orb asleep, and a line. */
-export function emptyState(text: string, state: BotStateName = "sleeping", color = "#F5F6F8"): HTMLElement {
+export function emptyState(text: string, state: BotStateName = "sleeping", color = "#8D7AFF"): HTMLElement {
   const el = document.createElement("div");
   el.className = "hub-empty";
   const canvas = document.createElement("canvas");
