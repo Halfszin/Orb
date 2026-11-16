@@ -281,7 +281,7 @@ class WidgetSurfacesTest {
         assertFalse(texts.contains("Wedge", ignoreCase = true))
         // The picker names: short, and the same ones in the README.
         val readme = File("../README.md").readText()
-        for (w in listOf("Orb at a glance", "All your agents", "Orb, big", "One-line status", "Approvals waiting", "Plan usage", "Finished today", "Orb's mood")) {
+        for (w in listOf("The Orb at a glance", "All your agents", "The Orb, big", "One-line status", "Approvals waiting", "Plan usage", "Finished today", "The Orb's mood")) {
             assertTrue(w, strings.contains(w))
             assertTrue("$w is not in the README", readme.contains(w))
         }

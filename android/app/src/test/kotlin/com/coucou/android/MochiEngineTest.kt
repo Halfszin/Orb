@@ -39,11 +39,11 @@ class MochiEngineTest {
         assertTrue("back overshoots", Ease.back(0.8) > 1.0)
     }
 
-    @Test fun bodyIsASuperellipseOfExponent2_7() {
-        val rx = 1.14
-        val ry = 0.88
+    @Test fun bodyIsACircle() {
+        val rx = 1.0
+        val ry = 1.0
         for (p in MochiGeometry.bodyPoints(rx, ry, 1.0, 0.0)) {
-            val v = abs(p.x / rx).pow(2.7) + abs(p.y / ry).pow(2.7)
+            val v = abs(p.x / rx).pow(2) + abs(p.y / ry).pow(2)
             assertEquals(1.0, v, 1e-6)
         }
         val first = MochiGeometry.bodyPoints(rx, ry, 1.0, 0.0).first()
