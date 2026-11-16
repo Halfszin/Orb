@@ -80,9 +80,9 @@ class WidgetPreviewTest {
 
     @Test fun theNamesAreTheOnesInTheBrief() {
         val expected = mapOf(
-            "widget_solo_label" to "Orb at a glance", "widget_list_label" to "All your agents", "widget_big_label" to "Orb, big",
+            "widget_solo_label" to "The Orb at a glance", "widget_list_label" to "All your agents", "widget_big_label" to "The Orb, big",
             "widget_pill_label" to "One-line status", "widget_alert_label" to "Approvals waiting", "widget_ring_label" to "Plan usage",
-            "widget_today_label" to "Finished today", "widget_mood_label" to "Orb's mood", "widget_glance_label" to "Agents summary",
+            "widget_today_label" to "Finished today", "widget_mood_label" to "The Orb's mood", "widget_glance_label" to "Agents summary",
         )
         for ((k, v) in expected) assertEquals(k, v, strings[k])
     }
