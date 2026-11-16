@@ -186,7 +186,7 @@ export function showsUpdateHint(waiting: boolean, state: BotStateName, pending: 
 
 /** The release page of this version, for "All changes". */
 export function releasePage(platform: "windows" | "linux", version: string): string {
-  return `https://github.com/Louis-CFM/coucou/releases/tag/${platform}-v${encodeURIComponent(version)}`;
+  return `https://github.com/Halfszin/Orb/releases/tag/${platform}-v${encodeURIComponent(version)}`;
 }
 
 /** Buy Orb a coffee: the same Stripe link as the Orb page (docs/index.html). */
