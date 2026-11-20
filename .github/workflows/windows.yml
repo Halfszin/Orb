@@ -120,7 +120,7 @@ jobs:
         run: |
           $v = "${{ steps.pack.outputs.version }}"
           $notes = @"
-          Coucou for Windows $v — Mochi at the top of your screen.
+          Orb for Windows $v — Orb at the top of your screen.
 
           Download ``Orb-Windows-$v.msi`` (Windows Installer) or ``Orb-Windows-$v-setup.exe`` and run it. The installer is not
           code-signed yet, so Windows SmartScreen shows a warning: click
@@ -133,7 +133,7 @@ jobs:
           gh release create "${{ github.ref_name }}" `
             "release/Orb-Windows-$v-setup.exe" `
             "release/Orb-Windows-$v.msi" `
-            --title "Coucou for Windows $v" `
+            --title "Orb for Windows $v" `
             --notes $notes `
             --latest=false
 
@@ -151,13 +151,13 @@ jobs:
             # from it gets an old tree.
             git tag -f windows-latest "${{ github.sha }}"
             git push -f origin windows-latest
-            gh release edit windows-latest --title "Coucou for Windows (latest)" --notes "Always the newest Windows build — currently $v."
+            gh release edit windows-latest --title "Orb for Windows (latest)" --notes "Always the newest Windows build — currently $v."
             gh release upload windows-latest "release/Orb-Windows-setup.exe" "release/Orb-Windows.msi" --clobber
           } else {
             gh release create windows-latest `
               "release/Orb-Windows-setup.exe" `
               "release/Orb-Windows.msi" `
-              --title "Coucou for Windows (latest)" `
+              --title "Orb for Windows (latest)" `
               --notes "Always the newest Windows build — currently $v." `
               --latest=false
           }
