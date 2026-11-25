@@ -1,246 +1,208 @@
-name: Build
+name: build
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    runs-on: macos-latest
+  windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate project
-        run: cd NotchBuddy && xcodegen
-
-      - name: Test screen geometry
-        run: bash scripts/test-screen-geometry.sh
-
-      - name: Test Claude hook detection
-        run: bash scripts/test-claude-hooks.sh
-
-      - name: Test the nb-hook relay (socket, decisions, remote sessions)
-        run: python3 scripts/test-nb-hook.py
-
-      - name: Test display choice
-        run: bash scripts/test-display-choice.sh
-
-      - name: Test island placement (notch and the four corners)
-        run: bash scripts/test-island-placement.sh
-
-      - name: Test parallel Claude Code sessions
-        run: bash scripts/test-session-registry.sh
-
-      - name: Test approval queue
-        run: bash scripts/test-approval-queue.sh
-
-      - name: Test question queue
-        run: bash scripts/test-question-queue.sh
-
-      - name: Test the session board (sessions behind a pill, popping out, places)
-        run: bash scripts/test-session-board.sh
-
-      - name: Test session titles in the relay
-        run: python3 scripts/test-session-title.py
-
-      - name: Test the chat on your subscription (Claude Code, Antigravity, Gemini, Codex, Cursor, Copilot)
-        run: bash scripts/test-cli-relay.sh
-
-      - name: Test a subscription run on stand-in tools (stdin, no thinking, signed out, time limit)
-        run: bash scripts/test-cli-relay-run.sh
-
-      - name: Test Mail triage (rules, banned words, VIPs, search)
-        run: bash scripts/test-mail-triage.sh
-
-      - name: Test the settings search (accents, words, labels)
-        run: bash scripts/test-settings-search.sh
-
-      - name: Test Antigravity permission rules
-        run: bash scripts/test-agy-permissions.sh
-
-      - name: Test Flow dictation keys
-        run: bash scripts/test-flow-keys.sh
-
-      - name: Test Flow text (snippets, dictionary, numbers)
-        run: bash scripts/test-flow-text.sh
-
-      - name: Test the work streak (Mochi sleepy after long work, fresh after a break)
-        run: bash scripts/test-work-streak.sh
-
-      - name: Test Notetaker transcript (speakers, echo, summary, Markdown)
-        run: bash scripts/test-notetaker.sh
-
-      - name: Test WhatsApp (gateway payloads, signatures, inbox, filters)
-        run: bash scripts/test-whatsapp.sh
-
-      - name: Test Mac update (releases, versions, where it may replace itself)
-        run: bash scripts/test-mac-update.sh
-
-      - name: Test What's new
-        run: bash scripts/test-whats-new-mac.sh
-
-      - name: Test Claude Desktop chat (stop button labels)
-        run: bash scripts/test-claude-desktop-chat.sh
-
-      - name: Desktop Mochi and gaze tests
-        run: bash scripts/test-desktop-mochi.sh
-
-      - name: Test auto-close timing
-        run: bash scripts/test-auto-close.sh
-
-      - name: Test Mac translations (Traditional Chinese coverage, format arguments, catalog keys)
-        run: python3 scripts/test-localization.py
-
-      - name: Test open on hover
-        run: bash scripts/test-island-hover.sh
-
-      - name: Wake phrase tests
-        run: bash scripts/test-voice-wake.sh
-
-      - name: Energy VAD tests
-        run: bash scripts/test-voice-vad.sh
-
-      - name: Voice island FSM tests
-        run: bash scripts/test-voice-island.sh
-
-      - name: Voice IntentParser tests
-        run: bash scripts/test-voice-intent.sh
-
-      - name: Voice EntityResolver tests
-        run: bash scripts/test-voice-entity.sh
-
-      - name: Voice ActionRunner tests
-        run: bash scripts/test-voice-runner.sh
-
-
-      - name: Voice query tests
-
-        run: bash scripts/test-voice-query.sh
-
-      - name: Voice conversation end-phrase tests
-        run: bash scripts/test-voice-conversation.sh
-
-      - name: Voice gender tests
-        run: bash scripts/test-voice-gender.sh
-
-      - name: Test terminal target
-        run: bash scripts/test-terminal-target.sh
-
-      - name: Test Claude Code host
-        run: bash scripts/test-claude-host.sh
-
-      - name: Test link filter
-        run: bash scripts/test-safe-links.sh
-
-      - name: Test Claude response text
-        run: bash scripts/test-claude-response.sh
-
-      - name: Test chat parsing
-        run: bash scripts/test-chat-parsing.sh
-
-      - name: Test plan gauge
-        run: bash scripts/test-plan-gauge.sh
-
-      - name: Test ask question
-        run: bash scripts/test-ask-question.sh
-
-      - name: Test the App Store review moments
-        run: bash scripts/test-review-policy.sh
-
-      - name: Test the new-session launcher
-        run: bash scripts/test-session-launch.sh
-
-      - name: Test the Android link (pairing, framing, admission, approvals, certificate)
-        run: bash scripts/test-android-link.sh
-
-      - name: Diff engine tests
-        run: bash scripts/test-diff-engine.sh
-
-      - name: GitHub pulse tests
-        run: bash scripts/test-github-pulse.sh
-
-      - name: GitHub activity tests
-        run: bash scripts/test-github-activity.sh
-
-      - name: Wardrobe tests
-        run: bash scripts/test-wardrobe.sh
-
-      - name: Pill colour tests
-        run: bash scripts/test-pill-colors.sh
-
-      - name: Claude settings file tests
-        run: bash scripts/test-claude-settings.sh
-
-      - name: Turn end policy tests
-        run: bash scripts/test-turn-end-policy.sh
-
-      - name: Voice spotter generation tests
-        run: bash scripts/test-voice-spotter-gen.sh
-
-      - name: Voice wake blocked tests
-        run: bash scripts/test-voice-wake-blocked.sh
-
-      - name: Conversation context tests
-        run: bash scripts/test-conversation-context.sh
-
-      - name: Codex automatic-review filter tests
-        run: bash scripts/test-codex-auto-review.sh
-
-      - name: Build
+      - name: Versão
+        shell: pwsh
         run: |
-          set -o pipefail
-          xcodebuild \
-            -project NotchBuddy/NotchBuddy.xcodeproj \
-            -scheme NotchBuddy \
-            -configuration Release \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO 2>&1 | tee build.log || {
-              # Compiler errors as annotations, readable without downloading the log.
-              grep -E "error:" build.log | sort -u | head -30 | sed 's/^/::error::/'
-              exit 1
+          $v = (Select-Xml -Path Orbi.csproj -XPath '//Version').Node.InnerText
+          "ORBI_VERSION=$v" >> $env:GITHUB_ENV
+
+      - name: Áudio e modelo de voz para o teste do ditado
+        shell: powershell
+        run: |
+          try {
+            Invoke-WebRequest "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin" -OutFile "$env:RUNNER_TEMP\ggml-tiny.bin"
+            Add-Type -AssemblyName System.Speech
+            $s = New-Object System.Speech.Synthesis.SpeechSynthesizer
+            $fmt = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo 16000, ([System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen), ([System.Speech.AudioFormat.AudioChannel]::Mono)
+            $s.SetOutputToWaveFile("$env:RUNNER_TEMP\voz.wav", $fmt)
+            $s.Speak("What is the weather like today")
+            $s.Dispose()
+            "ORBI_WHISPER_MODEL=$env:RUNNER_TEMP\ggml-tiny.bin" | Out-File $env:GITHUB_ENV -Append -Encoding ascii
+            "ORBI_WHISPER_WAV=$env:RUNNER_TEMP\voz.wav" | Out-File $env:GITHUB_ENV -Append -Encoding ascii
+          } catch { Write-Warning "Sem voz/modelo para o teste do ditado: $_" }
+
+      - name: Testes (batida, tarefas, hooks, agentes, ditado)
+        run: dotnet run --project tests
+
+      - name: Publicar
+        run: dotnet publish Orbi.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -o publish
+
+      - name: Teste rápido (abre o Orbi, passa o mouse no notch e tira prints)
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          New-Item -ItemType Directory ci -Force | Out-Null
+          function Shot($name) {
+            $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+            [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+            $bmp.Save("ci\$name.png")
+          }
+          # Ditado no .exe publicado (confere que a biblioteca de voz carrega dentro do executável único).
+          if ($env:ORBI_WHISPER_MODEL) {
+            Start-Process publish\Orbi.exe -ArgumentList "--testar-ditado", "`"$env:ORBI_WHISPER_MODEL`"", "`"$env:ORBI_WHISPER_WAV`"" -Wait
+            $heard = Get-Content "$env:APPDATA\Orbi\teste-ditado.txt" -Raw
+            "$heard" | Out-File ci\ditado.txt
+            if ("$heard" -notmatch "weather") { "ditado no .exe falhou: $heard" | Out-File ci\erros.log -Append }
+          }
+          # Dados de exemplo: cidade (clima), atalhos e uma tarefa que vence durante o teste (lembrete).
+          $dir = "$env:APPDATA\Orbi"
+          New-Item -ItemType Directory $dir -Force | Out-Null
+          '{"City":"São Paulo, São Paulo, Brasil","Latitude":-23.55,"Longitude":-46.63,"AppNotifications":true,"AgentPort":47821,"AgentToken":"citoken"}' | Set-Content "$dir\config.json" -Encoding utf8
+          '[{"Name":"Bloco de notas","Target":"C:\\Windows\\System32\\notepad.exe"},{"Name":"github.com","Target":"https://github.com/"}]' | Set-Content "$dir\atalhos.json" -Encoding utf8
+          $due = (Get-Date).AddSeconds(12).ToString("s")
+          "[{""Title"":""Lembrete do teste do CI"",""Due"":""$due"",""Done"":false,""Notified"":false},{""Title"":""Comprar pão"",""Due"":null,""Done"":false,""Notified"":false}]" | Set-Content "$dir\tarefas.json" -Encoding utf8
+          $p = Start-Process publish\Orbi.exe -PassThru
+          Start-Sleep 15
+          Shot "1-configuracoes"
+          $w = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
+          [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point ([int]($w / 2)), 8
+          Start-Sleep 3
+          Shot "2-notch-aberto"
+          try {
+            Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+            function Find($name) {
+              $c = New-Object System.Windows.Automation.PropertyCondition ([System.Windows.Automation.AutomationElement]::NameProperty), $name
+              [System.Windows.Automation.AutomationElement]::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c)
             }
+            $av = Find "Avatar do Orbi"
+            1..9 | ForEach-Object { $av.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); Start-Sleep -Milliseconds 150 }
+            Start-Sleep 1
+            Shot "3-avatar-cutucado"
+            (Find "Calendário").GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+            Start-Sleep 1
+            Shot "4-calendario"
+            function Tab($name, $shot) {
+              (Find $name).GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+              Start-Sleep 2
+              Shot $shot
+            }
+            Set-Clipboard -Value "Texto copiado no teste do CI"
+            Start-Sleep 1
+            Tab "Área de transferência" "6-area-transferencia"
+            Tab "Sistema" "7-sistema"
+            Tab "Notas" "8-notas"
+            Tab "Bandeja" "9-bandeja"
+            Tab "Tarefas" "10-tarefas"
+            Tab "Atalhos" "11-atalhos"
+            Tab "IA" "12-ia"
+            # Simula o Claude Code: um evento e um pedido de permissão que o robô aprova pelo notch.
+            '{"session_id":"ci","cwd":"C:/projetos/loja","tool_name":"Edit","tool_input":{"file_path":"C:/projetos/loja/app.ts"}}' | curl.exe -s -m 5 --data-binary "@-" "http://127.0.0.1:47821/citoken/PreToolUse" | Out-Null
+            $job = Start-Job { '{"session_id":"ci","cwd":"C:/projetos/loja","tool_name":"Bash","tool_input":{"command":"npm test"},"permission_suggestions":[{"type":"addRules"}]}' | curl.exe -s -m 60 --data-binary "@-" "http://127.0.0.1:47821/citoken/PermissionRequest" }
+            Start-Sleep 4
+            Shot "13-permissao"
+            (Find "Permitir").GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+            $answer = Receive-Job $job -Wait -AutoRemoveJob
+            "$answer" | Out-File ci\permissao.txt
+            if ("$answer" -notmatch '"behavior":"allow"') { "permissão não voltou como allow: $answer" | Out-File ci\erros.log -Append }
+            # Ao chegar a permissão o notch volta para Início (como no coucou): reabre a aba IA.
+            (Find "IA").GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+            Start-Sleep 1
+            (Find "Agentes").GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+            Start-Sleep 1
+            Shot "14-agentes"
+            '{"session_id":"ci","cwd":"C:/projetos/loja","last_assistant_message":"Migração aplicada, 14 testes passaram."}' | curl.exe -s -m 5 --data-binary "@-" "http://127.0.0.1:47821/citoken/Stop" | Out-Null
+            Start-Sleep 2
+            Shot "15-terminou"
+          } catch { "UIA: $_" | Out-File ci\uia.txt }
+          # Bug do Alt+Tab: tira o "sempre por cima" do notch e confere se ele volta sozinho.
+          Add-Type @"
+          using System; using System.Runtime.InteropServices; using System.Text;
+          public static class W {
+            public delegate bool CB(IntPtr h, IntPtr l);
+            [DllImport("user32.dll")] public static extern bool EnumWindows(CB cb, IntPtr l);
+            [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+            [DllImport("user32.dll")] public static extern int GetWindowLong(IntPtr h, int i);
+            [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h, IntPtr a, int x, int y, int cx, int cy, uint f);
+            [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
+            [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
+            public static IntPtr Notch(uint pid) {
+              IntPtr found = IntPtr.Zero;
+              EnumWindows((h, l) => { uint p; GetWindowThreadProcessId(h, out p);
+                var t = new StringBuilder(64); GetWindowText(h, t, 64);
+                // A janela do notch: visível, título "Orbi" e estilo de ferramenta (o WPF cria outras invisíveis).
+                if (p == pid && IsWindowVisible(h) && t.ToString() == "Orbi" && (GetWindowLong(h, -20) & 0x80) != 0) found = h; return true; }, IntPtr.Zero);
+              return found;
+            }
+          }
+          "@
+          $h = [W]::Notch([uint32]$p.Id)
+          [W]::SetWindowPos($h, [IntPtr](-2), 0, 0, 0, 0, 0x13) | Out-Null
+          $lost = ([W]::GetWindowLong($h, -20) -band 8) -eq 0
+          Start-Sleep 3
+          $back = ([W]::GetWindowLong($h, -20) -band 8) -ne 0
+          "janela=$h perdeu=$lost voltou=$back" | Out-File ci\topmost.txt
+          if (-not $back) { "notch não voltou para cima" | Out-File ci\erros.log -Append }
+          "vivo=$(-not $p.HasExited)" | Out-File ci\resultado.txt
+          $log = "$env:APPDATA\Orbi\erros.log"
+          if (Test-Path $log) { Copy-Item $log ci\erros.log }
+          if (-not $p.HasExited) { Stop-Process $p -Force }
+          # Notch na lateral esquerda: hora em pé, notch fino.
+          Set-Content "$env:APPDATA\Orbi\edge.txt" "Left 0.5"
+          [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point 900, 700
+          $p2 = Start-Process publish\Orbi.exe -ArgumentList "--startup" -PassThru
+          Start-Sleep 10
+          Shot "5-lateral"
+          if (Test-Path $log) { Copy-Item $log ci\erros.log -Force }
+          if (-not $p2.HasExited) { Stop-Process $p2 -Force }
+          # Tema claro: mesmo notch, cores claras.
+          '{"Theme":"claro","City":"São Paulo, São Paulo, Brasil","Latitude":-23.55,"Longitude":-46.63,"AgentPort":47821,"AgentToken":"citoken"}' | Set-Content "$env:APPDATA\Orbi\config.json" -Encoding utf8
+          Set-Content "$env:APPDATA\Orbi\edge.txt" "Top 0.5"
+          $p3 = Start-Process publish\Orbi.exe -ArgumentList "--startup" -PassThru
+          Start-Sleep 8
+          [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point ([int]($w / 2)), 8
+          Start-Sleep 3
+          Shot "16-claro"
+          try {
+            $c = New-Object System.Windows.Automation.PropertyCondition ([System.Windows.Automation.AutomationElement]::NameProperty), "Calendário"
+            [System.Windows.Automation.AutomationElement]::RootElement.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c).GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+            Start-Sleep 1
+            Shot "17-claro-calendario"
+          } catch { "UIA claro: $_" | Out-File ci\uia.txt -Append }
+          if (Test-Path $log) { Copy-Item $log ci\erros.log -Force }
+          if (-not $p3.HasExited) { Stop-Process $p3 -Force }
 
-      - name: Build App Store target (unsigned)
+      - name: Guardar o resultado do teste no branch ci-results
+        shell: bash
         run: |
-          xcodebuild \
-            -project NotchBuddy/NotchBuddy.xcodeproj \
-            -scheme CoucouAppStore \
-            -configuration Debug \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+          cd ci
+          git init -q -b ci-results && git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "teste ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-results
 
-      - name: Build iPhone link spike (Mac, DebugCloud, unsigned)
-        run: |
-          xcodebuild \
-            -project NotchBuddy/NotchBuddy.xcodeproj \
-            -scheme NotchBuddyCloud \
-            -configuration DebugCloud \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+      - name: Falhar se o Orbi fechou ou registrou erro
+        shell: pwsh
+        run: if ((Get-Content ci\resultado.txt) -ne 'vivo=True' -or (Test-Path ci\erros.log)) { exit 1 }
 
-      - name: Build iPhone link spike (Mac, ReleaseCloud, unsigned)
+      - name: Instalador
+        shell: pwsh
         run: |
-          xcodebuild \
-            -project NotchBuddy/NotchBuddy.xcodeproj \
-            -scheme NotchBuddy \
-            -configuration ReleaseCloud \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          & $iscc installer.iss
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
-      - name: Build iPhone app (unsigned)
+      - name: Publicar no Releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          xcodebuild \
-            -project NotchBuddy/NotchBuddy.xcodeproj \
-            -scheme CoucouPhone \
-            -destination 'generic/platform=iOS' \
-            build \
-            CODE_SIGNING_ALLOWED=NO
+          gh release create "v$ORBI_VERSION" dist/OrbiSetup.exe --title "Orbi $ORBI_VERSION" --notes "Baixe o OrbiSetup.exe e abra para instalar." \
+            || gh release upload "v$ORBI_VERSION" dist/OrbiSetup.exe --clobber

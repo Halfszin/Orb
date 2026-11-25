@@ -1,0 +1,372 @@
+<Window x:Class="Orbi.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Orbi"
+        Title="Orbi" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize"
+        FontFamily="Segoe UI" Foreground="{DynamicResource N.Fg}">
+    <Window.Resources>
+        <Style x:Key="IconBtn" TargetType="Button">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{DynamicResource N.Sub}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="Transparent" CornerRadius="14" Padding="10,5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource N.Fg}"/>
+                                <Setter TargetName="b" Property="Background" Value="{DynamicResource N.Hover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Tab" TargetType="RadioButton">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{DynamicResource N.Sub}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="GroupName" Value="Tab"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="b" Background="Transparent" CornerRadius="14" Padding="9,6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource N.Fg}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource N.Fg}"/>
+                                <Setter TargetName="b" Property="Background" Value="{DynamicResource N.Hover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ActionBtn" TargetType="Button">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="8" Padding="14,5">
+                            <ContentPresenter HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PillAction" TargetType="Button">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource N.Fg}"/>
+            <Setter Property="Background" Value="{DynamicResource N.Button}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="16" Padding="13,6">
+                            <ContentPresenter HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BarBtn" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Height="4" CornerRadius="2" Background="{TemplateBinding Background}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Vol" TargetType="Slider">
+            <Setter Property="Minimum" Value="0"/>
+            <Setter Property="Maximum" Value="1"/>
+            <Setter Property="IsMoveToPointEnabled" Value="True"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Background="Transparent" Height="18">
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource BarBtn}" Background="{DynamicResource N.Fg}" Command="Slider.DecreaseLarge"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource BarBtn}" Background="{DynamicResource N.Track}" Command="Slider.IncreaseLarge"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="11" Height="11">
+                                        <Thumb.Template>
+                                            <ControlTemplate><Ellipse Fill="White"/></ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="Pill" Background="{DynamicResource N.Bg}" ClipToBounds="True" Width="120" Height="30"
+            MouseEnter="Pill_MouseEnter" MouseLeave="Pill_MouseLeave"
+            MouseLeftButtonDown="Pill_MouseLeftButtonDown" MouseMove="Pill_MouseMove" MouseLeftButtonUp="Pill_MouseLeftButtonUp"
+            AllowDrop="True" DragEnter="Pill_DragEnter" DragOver="Pill_DragOver" Drop="Pill_Drop">
+        <Border.RenderTransform>
+            <ScaleTransform x:Name="PillScale"/>
+        </Border.RenderTransform>
+        <Border.ContextMenu>
+            <ContextMenu Closed="Menu_Closed">
+                <MenuItem Header="Configurações" Click="Settings_Click"/>
+                <Separator/>
+                <MenuItem Header="Sair" Click="Exit_Click"/>
+            </ContextMenu>
+        </Border.ContextMenu>
+        <Grid>
+            <!-- Fechado: anel da bateria (com raio quando carregando) + hora -->
+            <StackPanel x:Name="Mini" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Grid Width="18" Height="18" Margin="3">
+                    <Ellipse Stroke="{DynamicResource N.Track}" StrokeThickness="2.5"/>
+                    <Path x:Name="RingMini" StrokeThickness="2.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    <Path x:Name="BoltMini" Data="M6,0 L0,6.2 H3.8 L2.8,11 L9,4.6 H5.2 Z" Width="6.5" Height="8" Stretch="Uniform"
+ HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                </Grid>
+                <StackPanel x:Name="Bars" Orientation="Horizontal" Margin="3" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+                    <Rectangle x:Name="Bar1" Width="3" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#30D158" Margin="0.5,0" VerticalAlignment="Center"/>
+                    <Rectangle x:Name="Bar2" Width="3" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#30D158" Margin="0.5,0" VerticalAlignment="Center"/>
+                    <Rectangle x:Name="Bar3" Width="3" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#30D158" Margin="0.5,0" VerticalAlignment="Center"/>
+                    <Rectangle x:Name="Bar4" Width="3" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#30D158" Margin="0.5,0" VerticalAlignment="Center"/>
+                    <Rectangle x:Name="Bar5" Width="3" Height="3" RadiusX="1.5" RadiusY="1.5" Fill="#30D158" Margin="0.5,0" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock x:Name="ClockMini" FontWeight="SemiBold" FontSize="13" Margin="3" TextAlignment="Center"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Aviso rápido (fone conectou, carregador, bateria fraca) -->
+            <StackPanel x:Name="ToastPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0" IsHitTestVisible="False">
+                <TextBlock x:Name="ToastIcon" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock x:Name="ToastText" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="290"/>
+            </StackPanel>
+
+            <!-- Aberto -->
+            <Grid x:Name="Full" Opacity="0" IsHitTestVisible="False">
+                <Grid Margin="14,6,14,14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+
+
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Right">
+                            <Button Style="{StaticResource IconBtn}" Content="&#xE713;"
+                                    ToolTip="Configurações" AutomationProperties.Name="Configurações" Click="Settings_Click"/>
+                            <Ellipse x:Name="UpdateDot" Width="7" Height="7" Fill="#30D158" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                     Margin="0,4,6,0" IsHitTestVisible="False" Visibility="Collapsed" ToolTip="Versão nova pronta"/>
+                        </Grid>
+                        <TextBlock x:Name="AgentsCount" DockPanel.Dock="Right" FontSize="12" FontWeight="SemiBold" Foreground="#0A84FF" VerticalAlignment="Center" Margin="0,0,8,0" Visibility="Collapsed"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0">
+                            <TextBlock x:Name="WeatherText" FontSize="12" Margin="0,0,12,0" VerticalAlignment="Center" Visibility="Collapsed"
+                                       FontFamily="Segoe UI Symbol, Segoe UI"/>
+                            <Grid Width="18" Height="18" Margin="0,0,5,0">
+                                <Ellipse Stroke="{DynamicResource N.Track}" StrokeThickness="2.5"/>
+                                <Path x:Name="RingFull" StrokeThickness="2.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Path x:Name="BoltFull" Data="M6,0 L0,6.2 H3.8 L2.8,11 L9,4.6 H5.2 Z" Width="6.5" Height="8" Stretch="Uniform"
+ HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            </Grid>
+                            <TextBlock x:Name="BatteryText" FontSize="12" Foreground="{DynamicResource N.Sub}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="DateText" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            <TextBlock x:Name="ClockFull" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <!-- Abas em cima, como no coucou -->
+                    <StackPanel x:Name="TabBar" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <RadioButton x:Name="TabHome" Style="{StaticResource Tab}" Content="&#xE80F;" Tag="home" IsChecked="True" Checked="Tab_Checked"
+                                     ToolTip="Início" AutomationProperties.Name="Início" Margin="1,0"/>
+                        <RadioButton Style="{StaticResource Tab}" Content="&#xE787;" Tag="calendar" Checked="Tab_Checked"
+                                     ToolTip="Calendário e timer" AutomationProperties.Name="Calendário" Margin="1,0"/>
+                        <RadioButton x:Name="TabShelf" Style="{StaticResource Tab}" Content="&#xE896;" Tag="shelf" Checked="Tab_Checked"
+                                     ToolTip="Bandeja de arquivos" AutomationProperties.Name="Bandeja" Margin="1,0"/>
+                        <RadioButton Style="{StaticResource Tab}" Content="&#xE77F;" Tag="clip" Checked="Tab_Checked"
+                                     ToolTip="Área de transferência" AutomationProperties.Name="Área de transferência" Margin="1,0"/>
+                        <RadioButton Style="{StaticResource Tab}" Content="&#xE70B;" Tag="notes" Checked="Tab_Checked"
+                                     ToolTip="Notas rápidas" AutomationProperties.Name="Notas" Margin="1,0"/>
+                        <RadioButton Style="{StaticResource Tab}" Content="&#xE9D9;" Tag="system" Checked="Tab_Checked"
+                                     ToolTip="Sistema" AutomationProperties.Name="Sistema" Margin="1,0"/>
+                        <RadioButton Style="{StaticResource Tab}" Content="&#xE762;" Tag="todo" Checked="Tab_Checked"
+                                     ToolTip="Tarefas e lembretes" AutomationProperties.Name="Tarefas" Margin="1,0"/>
+                        <RadioButton Style="{StaticResource Tab}" Content="&#xE71D;" Tag="shortcuts" Checked="Tab_Checked"
+                                     ToolTip="Atalhos" AutomationProperties.Name="Atalhos" Margin="1,0"/>
+                        <RadioButton x:Name="TabAi" Style="{StaticResource Tab}" Content="&#xE99A;" Tag="ai" Checked="Tab_Checked"
+                                     ToolTip="Inteligência artificial" AutomationProperties.Name="IA" Margin="1,0"/>
+                    </StackPanel>
+                    </DockPanel>
+
+                    <Border Grid.Row="1" Background="{DynamicResource N.Card}" CornerRadius="24" Padding="10,10,14,10" ClipToBounds="True">
+                        <Grid>
+                        <!-- Brilho colorido na base do cartão: laranja = permissão, verde = terminou -->
+                        <Border x:Name="EventGlow" Margin="-10,-10,-14,-10" CornerRadius="24" Opacity="0" IsHitTestVisible="False">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#00000000" Offset="0.45"/>
+                                    <GradientStop x:Name="EventGlowColor" Color="#55FF9F0A" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <local:CalendarPage x:Name="CalendarView" Visibility="Collapsed"/>
+                        <local:ShelfPage x:Name="ShelfView" Visibility="Collapsed"/>
+                        <local:ClipboardPage x:Name="ClipView" Visibility="Collapsed"/>
+                        <local:NotesPage x:Name="NotesView" Visibility="Collapsed"/>
+                        <local:SystemPage x:Name="SystemView" Visibility="Collapsed"/>
+                        <local:TodoPage x:Name="TodoView" Visibility="Collapsed"/>
+                        <local:ShortcutsPage x:Name="ShortcutsView" Visibility="Collapsed"/>
+                        <local:AiPage x:Name="AiView" Visibility="Collapsed"/>
+
+                        <Grid x:Name="HomePage">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Avatar: clicável (reage aos cliques) e pulsa com a música -->
+                            <Button x:Name="AvatarButton" Width="104" Margin="0,0,8,0" Cursor="Hand" Focusable="False"
+                                    AutomationProperties.Name="Avatar do Orbi" Click="Avatar_Click"
+                                    Visibility="{Binding Visibility, ElementName=Avatar}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button"><ContentPresenter/></ControlTemplate>
+                                </Button.Template>
+                                <Grid Background="Transparent">
+                                    <Ellipse x:Name="Glow" Width="100" Height="100" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                                        <Ellipse.RenderTransform>
+                                            <ScaleTransform x:Name="GlowScale"/>
+                                        </Ellipse.RenderTransform>
+                                        <Ellipse.Fill>
+                                            <RadialGradientBrush>
+                                                <GradientStop Color="#40FFE2B8" Offset="0"/>
+                                                <GradientStop Color="#00FFE2B8" Offset="1"/>
+                                            </RadialGradientBrush>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                    <Border x:Name="AvatarBadge" Width="22" Height="22" CornerRadius="11" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                            Margin="16,20,0,0" Panel.ZIndex="2" Visibility="Collapsed" BorderBrush="{DynamicResource N.Card}" BorderThickness="2" IsHitTestVisible="False">
+                                        <TextBlock x:Name="AvatarBadgeText" FontSize="11" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <local:AvatarView x:Name="Avatar" Width="104" Height="104" RenderTransformOrigin="0.5,0.5">
+                                        <local:AvatarView.RenderTransform>
+                                            <ScaleTransform x:Name="AvatarScale"/>
+                                        </local:AvatarView.RenderTransform>
+                                    </local:AvatarView>
+                                </Grid>
+                            </Button>
+
+                            <!-- Evento do Claude Code ao lado do avatar (pedido de permissão / terminou) -->
+                            <StackPanel x:Name="EventPanel" Grid.Column="1" VerticalAlignment="Center" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <Ellipse x:Name="EventDot" Width="8" Height="8" VerticalAlignment="Center" Margin="0,1,7,0"/>
+                                    <TextBlock x:Name="EventProject" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="EventWhat" FontSize="13" Foreground="{DynamicResource N.Sub}" Margin="6,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                                <Border x:Name="EventCodeBox" Background="{DynamicResource N.Field}" CornerRadius="10" Padding="10,6" HorizontalAlignment="Left" MaxHeight="60" Margin="0,0,0,10">
+                                    <TextBlock x:Name="EventCode" FontFamily="Cascadia Mono, Consolas" FontSize="12" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                                </Border>
+                                <TextBlock x:Name="EventMessage" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis" Margin="0,0,0,10"/>
+                                <StackPanel x:Name="PermButtons" Orientation="Horizontal">
+                                    <Button Content="Negar" Tag="deny" Click="Permission_Click" Style="{StaticResource PillAction}" AutomationProperties.Name="Negar"/>
+                                    <Button x:Name="PermAlways" Content="Sempre permitir" Tag="always" Click="Permission_Click" Style="{StaticResource PillAction}" AutomationProperties.Name="Permitir sempre"/>
+                                    <Button Content="Permitir" Tag="allow" Click="Permission_Click" Style="{StaticResource PillAction}" Background="{DynamicResource N.Strong}" Foreground="{DynamicResource N.OnStrong}" AutomationProperties.Name="Permitir"/>
+                                </StackPanel>
+                                <StackPanel x:Name="DoneButtons" Orientation="Horizontal">
+                                    <Button Content="OK" Click="EventOk_Click" Style="{StaticResource PillAction}" Background="{DynamicResource N.Strong}" Foreground="{DynamicResource N.OnStrong}" AutomationProperties.Name="OK"/>
+                                </StackPanel>
+                                <TextBlock x:Name="PermQueue" FontSize="10.5" Foreground="#6E6E73" Margin="2,6,0,0"/>
+                            </StackPanel>
+
+                            <Grid x:Name="MediaPanel" Grid.Column="1" VerticalAlignment="Center">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border x:Name="CoverBox" Width="40" Height="40" CornerRadius="8" Background="{DynamicResource N.Field}">
+                                        <TextBlock x:Name="CoverIcon" Text="&#xE8D6;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                   Foreground="#777" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock x:Name="TitleText" Text="Nada tocando" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock x:Name="ArtistText" FontSize="12" Foreground="{DynamicResource N.Sub}" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Grid.Row="1" Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="36"/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="40"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="Elapsed" Text="0:00" FontSize="11" Foreground="{DynamicResource N.Sub}"/>
+                                    <Border x:Name="ProgressTrack" Grid.Column="1" Height="4" Cursor="Hand" MouseLeftButtonUp="Seek_Click" ToolTip="Clique para pular para esse ponto" CornerRadius="2" Background="{DynamicResource N.Track}" VerticalAlignment="Center">
+                                        <Border x:Name="ProgressFill" Width="0" CornerRadius="2" Background="{DynamicResource N.Fg}" HorizontalAlignment="Left"/>
+                                    </Border>
+                                    <TextBlock x:Name="Remaining" Grid.Column="2" Text="-0:00" FontSize="11" Foreground="{DynamicResource N.Sub}" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <DockPanel Grid.Row="2" Margin="0,6,0,0">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="&#xE767;" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="{DynamicResource N.Sub}"
+                                                   VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <Slider x:Name="VolSlider" Style="{StaticResource Vol}" Width="70" ValueChanged="Vol_Changed"
+                                                AutomationProperties.Name="Volume"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="ShuffleBtn" Style="{StaticResource IconBtn}" Content="&#xE8B1;" FontSize="13" Tag="shuffle" Click="Media_Click" AutomationProperties.Name="Aleatório" ToolTip="Aleatório"/>
+                                        <Button Style="{StaticResource IconBtn}" Content="&#xE892;" Tag="prev" Click="Media_Click" AutomationProperties.Name="Anterior"/>
+                                        <Button x:Name="PlayBtn" Style="{StaticResource IconBtn}" Content="&#xE768;" FontSize="18" Tag="play" Click="Media_Click" AutomationProperties.Name="Tocar ou pausar"/>
+                                        <Button Style="{StaticResource IconBtn}" Content="&#xE893;" Tag="next" Click="Media_Click" AutomationProperties.Name="Próxima"/>
+                                        <Button x:Name="RepeatBtn" Style="{StaticResource IconBtn}" Content="&#xE8EE;" FontSize="13" Tag="repeat" Click="Media_Click" AutomationProperties.Name="Repetir" ToolTip="Repetir"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Grid>
+                        </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

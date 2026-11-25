@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
+    <PackageReference Include="Whisper.net" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
+    <Compile Include="../BeatDetector.cs" />
+    <Compile Include="../SpectrumAnalyzer.cs" />
+    <Compile Include="../TaskParser.cs" />
+    <Compile Include="../ToastText.cs" />
+    <Compile Include="../UsageLog.cs" />
+    <Compile Include="../HookInstaller.cs" />
+    <Compile Include="../AgentHub.cs" />
+    <Compile Include="../AgentServer.cs" />
+    <Compile Include="../DictationText.cs" />
+    <Compile Include="../Transcriber.cs" />
+  </ItemGroup>
+</Project>

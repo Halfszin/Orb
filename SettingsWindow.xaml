@@ -1,0 +1,463 @@
+<Window x:Class="Orbi.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Orbi"
+        Title="Orbi" Icon="orbi.ico" Width="900" Height="600" MinWidth="760" MinHeight="480"
+        WindowStartupLocation="CenterScreen" Background="#0B0B0C"
+        FontFamily="Segoe UI" Foreground="White">
+    <Window.Resources>
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#6E6E73"/>
+            <Setter Property="Margin" Value="4,26,0,10"/>
+        </Style>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="#161618"/>
+            <Setter Property="BorderBrush" Value="#232326"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+        </Style>
+        <Style x:Key="Row" TargetType="Grid">
+            <Setter Property="Margin" Value="18,14"/>
+        </Style>
+        <Style x:Key="RowTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="RowSub" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#8E8E93"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="Seg" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#C7C7CC"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="GroupName" Value="Edge"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="b" Background="Transparent" CornerRadius="6" Padding="16,5">
+                            <ContentPresenter HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#3A3A3E"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Switch" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="t" Width="50" Height="28" CornerRadius="14" Background="#3A3A3E">
+                            <Ellipse x:Name="k" Width="22" Height="22" Fill="White" HorizontalAlignment="Left" Margin="3,0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="t" Property="Background" Value="#30D158"/>
+                                <Setter TargetName="k" Property="HorizontalAlignment" Value="Right"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Chip" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#C7C7CC"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="b" Background="#232326" CornerRadius="15" Padding="12,6" BorderBrush="#2E2E33" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="mark" Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="11" Margin="0,2,7,0" Visibility="Collapsed"/>
+                                <ContentPresenter/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#1F3A28"/>
+                                <Setter TargetName="b" Property="BorderBrush" Value="#30D158"/>
+                                <Setter TargetName="mark" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PillBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="#2A2A2E" CornerRadius="8" Padding="14,6">
+                            <ContentPresenter HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#38383C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Barra lateral -->
+        <DockPanel Margin="14,18,14,14">
+            <StackPanel DockPanel.Dock="Top">
+                <StackPanel Orientation="Horizontal" Margin="6,0,0,22">
+                    <Image Source="orbi.png" Width="30" Height="30" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="Orbi" FontSize="18" FontWeight="Bold" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Border Background="#1A1A1D" CornerRadius="8" Padding="10,6" Margin="0,0,0,14">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="12" Foreground="#8E8E93" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Grid>
+                            <TextBlock x:Name="SearchHint" Text="Buscar configurações" Foreground="#6E6E73" FontSize="13" IsHitTestVisible="False"/>
+                            <TextBox x:Name="SearchBox" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" FontSize="13"
+                                     AutomationProperties.Name="Buscar configurações" TextChanged="Search_TextChanged"/>
+                        </Grid>
+                    </DockPanel>
+                </Border>
+                <TextBlock Text="NOTCH" Style="{StaticResource Label}" Margin="10,0,0,8"/>
+                <StackPanel x:Name="NavItems"/>
+            </StackPanel>
+            <Border DockPanel.Dock="Bottom" Background="#141416" BorderBrush="#232326" BorderThickness="1"
+                    CornerRadius="10" Padding="12,9" VerticalAlignment="Bottom">
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="7" Height="7" Fill="#30D158" VerticalAlignment="Center"/>
+                    <TextBlock Text="Ativo · mouse no notch" FontSize="12" Foreground="#AEAEB2" Margin="8,0,0,0"/>
+                </StackPanel>
+            </Border>
+        </DockPanel>
+
+        <!-- Conteúdo -->
+        <Border Grid.Column="1" Margin="0,12,12,12" Background="#111113" BorderBrush="#1E1E21" BorderThickness="1" CornerRadius="18">
+            <ScrollViewer x:Name="ContentScroll" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="Sections" Margin="26,26,26,30">
+                    <Border x:Name="Banner" Height="160" CornerRadius="16" BorderBrush="#26262A" BorderThickness="1" ClipToBounds="True">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#050506" Offset="0"/>
+                                <GradientStop Color="#0B0B0D" Offset="0.55"/>
+                                <GradientStop Color="#2C2C30" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <Canvas x:Name="Stars" IsHitTestVisible="False"/>
+                            <TextBlock Text="Configurações" FontSize="30" FontWeight="Bold" Margin="26,34,0,0"
+                                       VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                            <local:AvatarView x:Name="BannerAvatar" Width="96" Height="96"
+                                              HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,6"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="NOTCH" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid Style="{StaticResource Row}">
+                                <TextBlock Text="Onde o notch fica" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                                <Border HorizontalAlignment="Right" Background="#232326" CornerRadius="8" Padding="3">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="EdgeTop" Content="Topo" Style="{StaticResource Seg}" Tag="Top" Checked="Edge_Checked"/>
+                                        <RadioButton x:Name="EdgeLeft" Content="Esquerda" Style="{StaticResource Seg}" Tag="Left" Checked="Edge_Checked"/>
+                                        <RadioButton x:Name="EdgeRight" Content="Direita" Style="{StaticResource Seg}" Tag="Right" Checked="Edge_Checked"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,80,0">
+                                    <TextBlock Text="Iniciar com o Windows" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock Text="O notch aparece sozinho quando você liga o PC, sem abrir esta tela." Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <CheckBox x:Name="StartupSwitch" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                          AutomationProperties.Name="Iniciar com o Windows" Click="Startup_Click"/>
+                            </Grid>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,220,0">
+                                    <TextBlock Text="Tamanho do notch aberto" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock Text="Grande deixa mais espaço para o chat, as listas e o calendário." Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#232326" CornerRadius="8" Padding="3">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="SizeBig" Content="Grande" Style="{StaticResource Seg}" GroupName="Size" Tag="grande" Checked="Size_Checked"/>
+                                        <RadioButton x:Name="SizeSmall" Content="Compacto" Style="{StaticResource Seg}" GroupName="Size" Tag="compacto" Checked="Size_Checked"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <StackPanel Margin="18,14">
+                                <TextBlock Text="Abas no acesso rápido" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Escolha o que aparece no notch. A aba Início fica sempre." Style="{StaticResource RowSub}"/>
+                                <WrapPanel x:Name="TabChips" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="APARÊNCIA" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,220,0">
+                                    <TextBlock Text="Tema do notch" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock Text="Escuro combina com o notch de verdade; claro fica leve em telas claras." Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#232326" CornerRadius="8" Padding="3">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="ThemeDark" Content="Escuro" Style="{StaticResource Seg}" GroupName="Theme" Tag="escuro" Checked="Theme_Checked"/>
+                                        <RadioButton x:Name="ThemeLight" Content="Claro" Style="{StaticResource Seg}" GroupName="Theme" Tag="claro" Checked="Theme_Checked"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,80,0">
+                                    <TextBlock Text="Esconder quando parado" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock Text="Sem música, agente ou aviso, o notch some. Passe o mouse na borda da tela para ele aparecer." Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <CheckBox x:Name="AutoHideSwitch" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                          AutomationProperties.Name="Esconder quando parado" Click="AutoHide_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="ATALHOS DE TECLADO" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,80,0">
+                                    <TextBlock Text="Atalhos de qualquer lugar" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock x:Name="HotkeyStatus" Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <CheckBox x:Name="HotkeySwitch" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                          AutomationProperties.Name="Atalhos de teclado" Click="Hotkeys_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="SONS" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,80,0">
+                                    <TextBlock Text="Sons do Orbi" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock Text="Avisos de permissão, de tarefa terminada, de lembrete e do timer." Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <CheckBox x:Name="SoundSwitch" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                          AutomationProperties.Name="Sons do Orbi" Click="Sound_Click"/>
+                            </Grid>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,200,0">
+                                    <TextBlock Text="Seus próprios sons" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock Text="Coloque na pasta arquivos .wav com estes nomes: permissao, terminou, lembrete, timer, aviso." Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <Button Content="Abrir pasta de sons" Style="{StaticResource PillBtn}" HorizontalAlignment="Right" VerticalAlignment="Center" Click="OpenSounds_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="DITADO (VOZ)" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,80,0">
+                                    <TextBlock Text="Ditar em qualquer programa" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock Text="Segure Ctrl direito, fale e solte: o texto é colado onde o cursor está. Esc ou outra tecla junto cancela. O reconhecimento roda no seu PC e o áudio não sai daqui." Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <CheckBox x:Name="DictSwitch" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                          AutomationProperties.Name="Ditado" Click="Dict_Click"/>
+                            </Grid>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <Grid Style="{StaticResource Row}">
+                                <StackPanel Margin="0,0,300,0">
+                                    <TextBlock Text="Modelo de voz" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock x:Name="ModelStatus" Style="{StaticResource RowSub}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Border Background="#232326" CornerRadius="8" Padding="3">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton x:Name="ModelBase" Content="Rápido" Style="{StaticResource Seg}" GroupName="Model" Tag="base" Checked="Model_Checked"/>
+                                            <RadioButton x:Name="ModelSmall" Content="Preciso" Style="{StaticResource Seg}" GroupName="Model" Tag="small" Checked="Model_Checked"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Button x:Name="ModelBtn" Content="Baixar" Style="{StaticResource PillBtn}" Margin="8,0,0,0" Click="DownloadModel_Click"/>
+                                </StackPanel>
+                            </Grid>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <StackPanel Margin="18,14">
+                                <TextBlock Text="Dicionário" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Nomes e termos que o ditado deve escrever certo, um por linha." Style="{StaticResource RowSub}"/>
+                                <Border Background="#232326" CornerRadius="8" Padding="10,6" Margin="0,8,0,0">
+                                    <TextBox x:Name="DictWordsBox" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" FontSize="13"
+                                             AcceptsReturn="True" TextWrapping="Wrap" Height="62" VerticalScrollBarVisibility="Auto"
+                                             AutomationProperties.Name="Dicionário" LostFocus="DictText_LostFocus"/>
+                                </Border>
+                            </StackPanel>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <StackPanel Margin="18,14">
+                                <TextBlock Text="Trocas" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Quando ouvir uma coisa, escreve outra. Uma por linha, assim: cloud code => Claude Code" Style="{StaticResource RowSub}"/>
+                                <Border Background="#232326" CornerRadius="8" Padding="10,6" Margin="0,8,0,0">
+                                    <TextBox x:Name="DictSwapsBox" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" FontSize="13"
+                                             AcceptsReturn="True" TextWrapping="Wrap" Height="62" VerticalScrollBarVisibility="Auto"
+                                             AutomationProperties.Name="Trocas" LostFocus="DictText_LostFocus"/>
+                                </Border>
+                            </StackPanel>
+                            <Border Height="1" Background="#232326" Margin="18,0"/>
+                            <StackPanel Margin="18,14">
+                                <TextBlock Text="Atalhos de texto" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Fale a frase curta e cola o texto inteiro. Ex.: meu email => voce@exemplo.com (\n vira quebra de linha)" Style="{StaticResource RowSub}"/>
+                                <Border Background="#232326" CornerRadius="8" Padding="10,6" Margin="0,8,0,0">
+                                    <TextBox x:Name="DictSnippetsBox" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" FontSize="13"
+                                             AcceptsReturn="True" TextWrapping="Wrap" Height="62" VerticalScrollBarVisibility="Auto"
+                                             AutomationProperties.Name="Atalhos de texto" LostFocus="DictText_LostFocus"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="ESTATÍSTICAS DO DITADO" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel Margin="18,14">
+                            <TextBlock x:Name="DictStats" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="DictRecent" Style="{StaticResource RowSub}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="AVATAR" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <Grid Style="{StaticResource Row}">
+                            <StackPanel Margin="0,0,230,0">
+                                <TextBlock Text="Arquivo do avatar" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="AvatarStatus" Style="{StaticResource RowSub}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button x:Name="DefaultAvatarBtn" Content="Usar o padrão" Style="{StaticResource PillBtn}" Margin="0,0,8,0" Click="DefaultAvatar_Click"/>
+                                <Button Content="Escolher…" Style="{StaticResource PillBtn}" Click="PickAvatar_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="CLIMA" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <Grid Style="{StaticResource Row}">
+                            <StackPanel Margin="0,0,300,0">
+                                <TextBlock Text="Cidade" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="CityStatus" Style="{StaticResource RowSub}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Border Background="#232326" CornerRadius="8" Padding="8,5" Width="190" Margin="0,0,8,0">
+                                    <TextBox x:Name="CityInput" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" FontSize="13" AutomationProperties.Name="Cidade"/>
+                                </Border>
+                                <Button Content="Salvar" Style="{StaticResource PillBtn}" Click="SaveCity_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="INTELIGÊNCIA ARTIFICIAL" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <Grid Style="{StaticResource Row}">
+                            <StackPanel Margin="0,0,300,0">
+                                <TextBlock Text="Chave da API do Claude" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="KeyStatus" Style="{StaticResource RowSub}"/>
+                                <TextBlock Style="{StaticResource RowSub}">
+                                    <Hyperlink NavigateUri="https://console.anthropic.com/settings/keys" RequestNavigate="Link_RequestNavigate" Foreground="#0A84FF">Criar uma chave no Console da Anthropic</Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Border Background="#232326" CornerRadius="8" Padding="8,5" Width="190" Margin="0,0,8,0">
+                                    <PasswordBox x:Name="KeyInput" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" FontSize="13" AutomationProperties.Name="Chave da API"/>
+                                </Border>
+                                <Button Content="Salvar" Style="{StaticResource PillBtn}" Click="SaveKey_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="AGENTES (CLAUDE CODE)" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <Grid Style="{StaticResource Row}">
+                            <StackPanel Margin="0,0,250,0">
+                                <TextBlock Text="Sessões, permissões e limites do plano no notch" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="AgentsStatus" Style="{StaticResource RowSub}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button x:Name="AgentsOff" Content="Desconectar" Style="{StaticResource PillBtn}" Margin="0,0,8,0" Click="AgentsOff_Click"/>
+                                <Button x:Name="AgentsOn" Content="Conectar" Style="{StaticResource PillBtn}" Click="AgentsOn_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="NOTIFICAÇÕES" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <Grid Style="{StaticResource Row}">
+                            <StackPanel Margin="0,0,80,0">
+                                <TextBlock Text="WhatsApp e Discord no notch" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="Mostra as mensagens que chegam, lendo as notificações do próprio Windows. Nada sai do seu PC." Style="{StaticResource RowSub}"/>
+                            </StackPanel>
+                            <CheckBox x:Name="NotifSwitch" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                      AutomationProperties.Name="Notificações do WhatsApp e Discord" Click="Notif_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="ATUALIZAÇÕES" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <Grid Style="{StaticResource Row}">
+                            <StackPanel Margin="0,0,300,0">
+                                <TextBlock x:Name="VersionText" Style="{StaticResource RowTitle}"/>
+                                <TextBlock x:Name="UpdateStatus" Style="{StaticResource RowSub}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Content="Verificar agora" Style="{StaticResource PillBtn}" Click="CheckUpdate_Click"/>
+                                <Button x:Name="InstallBtn" Content="Reiniciar e atualizar" Margin="8,0,0,0" Click="InstallUpdate_Click" Visibility="Collapsed">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="#30D158" CornerRadius="8" Padding="14,6">
+                                                <TextBlock Text="{TemplateBinding Content}" Foreground="Black" FontWeight="SemiBold" FontSize="13"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="APP" Style="{StaticResource Label}"/>
+                    <Border Style="{StaticResource Card}">
+                        <Grid Style="{StaticResource Row}">
+                            <StackPanel Margin="0,0,100,0">
+                                <TextBlock Text="Fechar o Orbi" Style="{StaticResource RowTitle}"/>
+                                <TextBlock Text="O notch some até você abrir o app de novo. Fechar esta janela não fecha o notch." Style="{StaticResource RowSub}"/>
+                            </StackPanel>
+                            <Button Content="Sair" Style="{StaticResource PillBtn}" HorizontalAlignment="Right" VerticalAlignment="Center" Click="Exit_Click"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>
