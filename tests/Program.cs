@@ -166,6 +166,49 @@ if (status != "Opus · 5h 42%") failures.Add("servidor: status line: " + status)
 Curl($"{baseUrl}/Stop", "{\"session_id\":\"s1\",\"cwd\":\"C:/projetos/loja\"}");
 if (hub.Sessions["s1"].Busy || hub.Sessions["s1"].Status != "Terminou") failures.Add("servidor: Stop");
 
+// ---- Pergunta do Claude (AskUserQuestion) respondida no notch ----
+var hubQ = new AgentHub();
+hubQ.PermissionAsked += perm =>
+{
+    if (perm.Questions is not { Count: 2 } qs || qs[0].Multi || !qs[1].Multi) { failures.Add("pergunta: leitura"); AgentHub.Decide(perm, "deny"); return; }
+    if (AgentHub.QuestionResponse(perm, new List<string[]> { new[] { "Inventada" }, new[] { "Testes" } }) != null) failures.Add("pergunta: aceitou opção inventada");
+    if (AgentHub.QuestionResponse(perm, new List<string[]> { new[] { "Postgres", "SQLite" }, new[] { "Testes" } }) != null) failures.Add("pergunta: duas opções numa pergunta simples");
+    AgentHub.AnswerQuestions(perm, new List<string[]> { new[] { "SQLite" }, new[] { "Testes", "Docs" } });
+};
+var serverQ = AgentServer.Start(47950, "q", hubQ.Handle)!;
+string askBody = "{\"session_id\":\"q1\",\"cwd\":\"/p/app\",\"tool_name\":\"AskUserQuestion\",\"tool_input\":{\"questions\":[" +
+    "{\"question\":\"Qual banco?\",\"header\":\"Banco\",\"multiSelect\":false,\"options\":[{\"label\":\"Postgres\",\"description\":\"servidor\"},{\"label\":\"SQLite\",\"description\":\"arquivo\"}]}," +
+    "{\"question\":\"O que incluir?\",\"header\":\"Extras\",\"multiSelect\":true,\"options\":[{\"label\":\"Testes\"},{\"label\":\"Docs\"},{\"label\":\"CI\"}]}]}}";
+var reply = System.Text.Json.Nodes.JsonNode.Parse(Curl($"http://127.0.0.1:{serverQ.Port}/q/PermissionRequest", askBody));
+var upd = reply?["hookSpecificOutput"]?["decision"]?["updatedInput"];
+if (reply?["hookSpecificOutput"]?["decision"]?["behavior"]?.GetValue<string>() != "allow" || upd?["answers"]?["Qual banco?"]?.GetValue<string>() != "SQLite"
+    || upd?["answers"]?["O que incluir?"]?.ToJsonString() != "[\"Testes\",\"Docs\"]" || upd?["questions"] is not System.Text.Json.Nodes.JsonArray)
+    failures.Add("pergunta: resposta para o Claude Code: " + reply?.ToJsonString());
+if (AgentHub.ParseQuestions(System.Text.Json.Nodes.JsonNode.Parse("{\"questions\":[{\"question\":\"Só uma opção?\",\"options\":[{\"label\":\"Sim\"}]}]}")) != null) failures.Add("pergunta: aceitou pergunta com uma opção só");
+// Respondida no terminal: o PostToolUse da sessão fecha o cartão (resposta vazia).
+var hubT = new AgentHub();
+var serverT = AgentServer.Start(47960, "t", hubT.Handle)!;
+var pendingT = Task.Run(() => Curl($"http://127.0.0.1:{serverT.Port}/t/PermissionRequest", askBody));
+for (int i = 0; i < 50 && hubT.Pending.Count == 0; i++) await Task.Delay(100);
+Curl($"http://127.0.0.1:{serverT.Port}/t/PostToolUse", "{\"session_id\":\"q1\",\"cwd\":\"/p/app\",\"tool_name\":\"AskUserQuestion\",\"tool_input\":{}}");
+if (!pendingT.Wait(5000) || pendingT.Result != "") failures.Add("pergunta: respondida no terminal não fechou o cartão");
+
+// ---- Diff ao vivo (+N −M) ----
+var patchEdit = AgentHub.ParseEdit("Edit", System.Text.Json.Nodes.JsonNode.Parse("{\"file_path\":\"C:/p/app.ts\",\"old_string\":\"a\",\"new_string\":\"b\"}"),
+    System.Text.Json.Nodes.JsonNode.Parse("{\"structuredPatch\":[{\"oldStart\":1,\"lines\":[\" x\",\"-a\",\"+b\",\"+c\"]}]}"));
+if (patchEdit is not { File: "app.ts", Added: 2, Removed: 1 } || patchEdit.Lines.Length != 4) failures.Add("diff: structuredPatch");
+var multi = AgentHub.ParseEdit("MultiEdit", System.Text.Json.Nodes.JsonNode.Parse("{\"file_path\":\"/p/b.cs\",\"edits\":[{\"old_string\":\"x\\ny\",\"new_string\":\"z\"},{\"old_string\":\"q\",\"new_string\":\"w\\nv\"}]}"), null);
+if (multi is not { Added: 3, Removed: 3 }) failures.Add($"diff: MultiEdit sem patch +{multi?.Added} −{multi?.Removed}");
+var write = AgentHub.ParseEdit("Write", System.Text.Json.Nodes.JsonNode.Parse("{\"file_path\":\"/p/n.txt\",\"content\":\"1\\n2\\n3\\n\"}"), null);
+if (write is not { Added: 3, Removed: 0 }) failures.Add("diff: Write");
+var huge = AgentHub.ParseEdit("Write", System.Text.Json.Nodes.JsonNode.Parse("{\"file_path\":\"/p/g.txt\",\"content\":\"" + string.Concat(Enumerable.Repeat("l\\n", 5000)) + "\"}"), null);
+if (huge is not { Added: 5000 } || huge.Lines.Length != 0) failures.Add("diff: arquivo grande devia guardar só as contas");
+if (AgentHub.ParseEdit("Read", System.Text.Json.Nodes.JsonNode.Parse("{\"file_path\":\"/a\"}"), null) != null) failures.Add("diff: Read não é edição");
+Curl($"http://127.0.0.1:{serverT.Port}/t/PostToolUse", "{\"session_id\":\"q1\",\"cwd\":\"/p/app\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/p/app/x.md\",\"content\":\"oi\"}}");
+if (hubT.Sessions["q1"].Status != "Editou x.md +1 −0" || hubT.Sessions["q1"].Edits.Count != 1) failures.Add("diff: status da sessão: " + hubT.Sessions["q1"].Status);
+var oldHooks = (System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse("{\"hooks\":{\"Stop\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"curl x # orbi-hook\"}]}]}}")!;
+if (HookInstaller.Merge(oldHooks, 1, "t", out _)["hooks"]?["PostToolUse"] is null) failures.Add("hooks: PostToolUse");
+
 // ---- Última mensagem do Claude (aviso de "terminou") ----
 string transcript = Path.GetTempFileName();
 File.WriteAllLines(transcript, new[]

@@ -20,7 +20,7 @@ public partial class AiPage : UserControl
         set
         {
             _hub = value;
-            if (value != null) value.Changed += () => { if (AgentsPanel.Visibility == Visibility.Visible) DrawAgents(); };
+            if (value != null) value.Changed += () => { if (AgentsPanel.Visibility == Visibility.Visible && _diff == null) DrawAgents(); };
         }
     }
 
@@ -42,7 +42,7 @@ public partial class AiPage : UserControl
         AgentsPanel.Visibility = agents ? Visibility.Visible : Visibility.Collapsed;
         NewChat.Visibility = usage || agents ? Visibility.Collapsed : Visibility.Visible;
         if (usage) _ = LoadUsage();
-        if (agents) DrawAgents();
+        if (agents) CloseDiff();
     }
 
     // ---------- chat ----------
@@ -176,8 +176,44 @@ public partial class AiPage : UserControl
         else if (_hub.Sessions.Count == 0)
             Row("Nenhuma sessão agora", "abra o Claude Code no terminal", muted: true, target: AgentRows);
         foreach (var s in _hub.Sessions.Values.OrderByDescending(x => x.Updated))
+        {
             Row((s.Busy ? "● " : "○ ") + s.Project, s.Status, target: AgentRows);
+            // Últimas edições: clique para ver o diff (como no coucou).
+            foreach (var edit in s.Edits.AsEnumerable().Reverse().Take(5))
+            {
+                Row("    " + edit.File, $"+{edit.Added} −{edit.Removed}", target: AgentRows);
+                var row = (FrameworkElement)AgentRows.Children[^1];
+                row.Cursor = Cursors.Hand;
+                row.ToolTip = edit.Lines.Length > 0 ? "Ver o que mudou" : "Grande demais para mostrar";
+                row.MouseLeftButtonUp += (_, _) => ShowDiff(s.Project, edit);
+            }
+        }
     }
+
+    AgentHub.FileEdit? _diff; // aberto: o painel mostra o diff e não se redesenha a cada evento
+
+    void ShowDiff(string project, AgentHub.FileEdit edit)
+    {
+        if (edit.Lines.Length == 0) return;
+        _diff = edit;
+        AgentRows.Children.Clear();
+        var back = new TextBlock { Text = "‹ Voltar", FontSize = 12, FontWeight = FontWeights.SemiBold, Foreground = Theme.Res("N.Fg"), Cursor = Cursors.Hand, Margin = new Thickness(0, 4, 0, 4) };
+        back.MouseLeftButtonUp += (_, _) => CloseDiff();
+        AgentRows.Children.Add(back);
+        Header($"{project} · {edit.File}  +{edit.Added} −{edit.Removed}", AgentRows);
+        var green = new SolidColorBrush(Color.FromArgb(0x40, 0x30, 0xD1, 0x58));
+        var red = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0x45, 0x3A));
+        foreach (var line in edit.Lines.Take(400))
+            AgentRows.Children.Add(new TextBlock
+            {
+                Text = line.Length == 0 ? " " : line, FontFamily = new FontFamily("Cascadia Mono, Consolas"), FontSize = 11,
+                Foreground = Theme.Res("N.Fg"), TextWrapping = TextWrapping.Wrap, Padding = new Thickness(4, 0, 4, 0),
+                Background = line.StartsWith('+') ? green : line.StartsWith('-') ? red : Brushes.Transparent,
+            });
+        if (edit.Lines.Length > 400) Row($"… mais {edit.Lines.Length - 400} linhas", "", muted: true, target: AgentRows);
+    }
+
+    void CloseDiff() { _diff = null; DrawAgents(); }
 
     // ---------- consumo ----------
 

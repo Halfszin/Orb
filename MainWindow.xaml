@@ -306,6 +306,14 @@
                                     <Button x:Name="PermAlways" Content="Sempre permitir" Tag="always" Click="Permission_Click" Style="{StaticResource PillAction}" AutomationProperties.Name="Permitir sempre"/>
                                     <Button Content="Permitir" Tag="allow" Click="Permission_Click" Style="{StaticResource PillAction}" Background="{DynamicResource N.Strong}" Foreground="{DynamicResource N.OnStrong}" AutomationProperties.Name="Permitir"/>
                                 </StackPanel>
+                                <!-- Pergunta do Claude Code (AskUserQuestion): as opções viram botões -->
+                                <StackPanel x:Name="QuestionPanel" Visibility="Collapsed">
+                                    <WrapPanel x:Name="QuestionOptions"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <Button x:Name="QuestionSend" Content="Enviar" Click="QuestionSend_Click" Style="{StaticResource PillAction}" Background="{DynamicResource N.Strong}" Foreground="{DynamicResource N.OnStrong}" AutomationProperties.Name="Enviar resposta"/>
+                                        <Button Content="Responder no terminal" Click="QuestionTerminal_Click" Style="{StaticResource PillAction}" AutomationProperties.Name="Responder no terminal"/>
+                                    </StackPanel>
+                                </StackPanel>
                                 <StackPanel x:Name="DoneButtons" Orientation="Horizontal">
                                     <Button Content="OK" Click="EventOk_Click" Style="{StaticResource PillAction}" Background="{DynamicResource N.Strong}" Foreground="{DynamicResource N.OnStrong}" AutomationProperties.Name="OK"/>
                                 </StackPanel>

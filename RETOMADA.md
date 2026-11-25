@@ -61,7 +61,11 @@ Neste ambiente não há Windows nem .NET para rodar o app. Quem compila e testa 
 - O Orb tinha antes outro projeto (a esfera em Tauri). Ele continua no histórico do Git, antes do commit que trouxe o Orbi, e os releases antigos dele (`windows-v0.5.9`, `windows-latest`) continuam na página de Releases.
 
 ## Ideias pendentes (lista do dono)
-- Mais coisas do coucou (github.com/louis-cfm/coucou) e do Nusa: letras sincronizadas e gradiente da capa já existem no Rust e podem vir para cá.
+- Trazer **todas** as funções do coucou (github.com/louis-cfm/coucou, pasta `windows/` é a versão Tauri para Windows). Só o código é MIT: o nome, o personagem Mochi, os sons e as imagens **não** podem ser copiados (`LICENSE-ASSETS.md`). Trazer as ideias, com o avatar e os sons do Orbi.
+  - Já tem: permissão Permitir/Negar/Sempre, plano do Claude (5 h e semana), status das sessões, aviso de "terminou" com a última frase, Spotify com controles, ditado segurando Ctrl direito com atalhos de texto e estatísticas, WhatsApp (pelas notificações), chat pela assinatura do Claude Code, busca nas configurações, soltar arquivo no notch (prateleira).
+  - Veio na 2.0.1: perguntas do Claude (AskUserQuestion) respondidas no notch, com uma ou várias opções e "Responder no terminal"; o cartão fecha se você responder no terminal; diff ao vivo (+N −M) de cada edição e o diff aberto na aba Agentes; hooks antigos ganham os eventos novos sozinhos ao abrir.
+  - Falta, em ordem de prioridade: atalhos globais (Ctrl+Alt+Espaço abre o chat, Ctrl+Alt+A vai para a permissão, mudo, abrir/fechar), "Abrir terminal" da sessão, nova sessão do Claude Code (escolher pasta e pedido), soltar arquivo numa sessão (cola o caminho no terminal), sons próprios numa pasta, resumo da semana (recap.json, imagem para compartilhar), aba do GitHub (meus PRs, revisões, CI), chat com Markdown e outros provedores (OpenAI, Gemini, OpenRouter, Ollama/LM Studio), Outlook clássico (ler, regras, VIP), gravar chamada com transcrição e resumo, "OK Orbi" por voz, integrações (Stripe, Vercel, n8n, Notion, Cal.com, Resend), uso do Codex.
+- Do Nusa e do coucou: letras sincronizadas e gradiente da capa já existem no Rust e podem vir para cá.
 - Trocar a versão em C# pela de Rust quando a de Rust tiver tudo: instalador com o mesmo AppId.
 
 ## Commits

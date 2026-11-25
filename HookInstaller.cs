@@ -14,7 +14,7 @@ public static class HookInstaller
     // PermissionRequest espera você decidir, por isso o tempo maior.
     public static readonly (string Event, int Timeout)[] Events =
     {
-        ("SessionStart", 10), ("SessionEnd", 10), ("UserPromptSubmit", 10), ("PreToolUse", 10),
+        ("SessionStart", 10), ("SessionEnd", 10), ("UserPromptSubmit", 10), ("PreToolUse", 10), ("PostToolUse", 10),
         ("PermissionRequest", 120), ("Notification", 10), ("Stop", 10),
     };
 
@@ -102,6 +102,13 @@ public static class HookInstaller
     public static bool IsInstalled()
     {
         try { return Read()?["hooks"] is JsonObject h && h.Any(kv => kv.Value is JsonArray a && a.Any(IsOursEntry)); }
+        catch { return false; }
+    }
+
+    /// <summary>Ligado, mas de uma versão antiga do Orbi que não tinha todos os eventos de hoje.</summary>
+    public static bool IsOutdated()
+    {
+        try { return Read()?["hooks"] is JsonObject h && IsInstalled() && Events.Any(e => h[e.Event] is not JsonArray a || !a.Any(IsOursEntry)); }
         catch { return false; }
     }
 

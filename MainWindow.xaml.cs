@@ -387,6 +387,9 @@ public partial class MainWindow : Window
         try { cfg.Save(); } catch { } // guarda o código secreto gerado na primeira vez
         if (portMoved && HookInstaller.IsInstalled())
             Dispatcher.BeginInvoke(() => Toast("\uE7BA", "Agentes: a porta mudou, reconecte em Configurações", null, 8));
+        // Hooks de uma versão antiga: põe os eventos novos (só as entradas do Orbi mudam, com backup).
+        else if (AgentServer != null && HookInstaller.IsOutdated())
+            try { HookInstaller.Install(AgentServer.Port, cfg.AgentToken); } catch { }
         Agents.PermissionAsked += _ => ShowPermission();
         Agents.Changed += () =>
         {
@@ -461,6 +464,7 @@ public partial class MainWindow : Window
         EventMessage.Text = message ?? "";
         EventMessage.Visibility = message != null ? Visibility.Visible : Visibility.Collapsed;
         PermButtons.Visibility = kind == "permission" ? Visibility.Visible : Visibility.Collapsed;
+        QuestionPanel.Visibility = Visibility.Collapsed;
         DoneButtons.Visibility = kind == "done" ? Visibility.Visible : Visibility.Collapsed;
         PermQueue.Visibility = kind == "permission" ? Visibility.Visible : Visibility.Collapsed;
         EventGlowColor.Color = Color.FromArgb(0x55, color.R, color.G, color.B);
@@ -492,7 +496,8 @@ public partial class MainWindow : Window
     {
         if (Agents.Pending.FirstOrDefault() is not { } perm) return;
         bool first = _event != "permission";
-        ShowEvent("permission", perm.Project, perm.What, perm.Code, null);
+        if (perm.Questions != null) ShowQuestion(perm);
+        else ShowEvent("permission", perm.Project, perm.What, perm.Code, null);
         PermAlways.Visibility = perm.Suggestions is System.Text.Json.Nodes.JsonArray { Count: > 0 } ? Visibility.Visible : Visibility.Collapsed;
         PermQueue.Text = Agents.Pending.Count > 1 ? $"+{Agents.Pending.Count - 1} na fila" : "Sem resposta em 2 min, vai para o terminal";
         if (!first) return;
@@ -501,6 +506,66 @@ public partial class MainWindow : Window
         if (!_open) Resize(true);
         React("alerting", 3);
     }
+
+    // ---------- pergunta do Claude Code: uma de cada vez; com várias opções marcadas, "Enviar" ----------
+
+    AgentHub.Permission? _qPerm;
+    int _qIndex;
+    readonly List<string[]> _qPicked = new();
+    readonly HashSet<string> _qSelected = new();
+
+    void ShowQuestion(AgentHub.Permission perm)
+    {
+        if (_qPerm != perm) { _qPerm = perm; _qIndex = 0; _qPicked.Clear(); }
+        else if (_event == "permission" && QuestionPanel.Visibility == Visibility.Visible) return; // já está na tela: não perde o que você marcou
+        _qSelected.Clear();
+        var q = perm.Questions![_qIndex];
+        string step = perm.Questions.Count > 1 ? $" ({_qIndex + 1}/{perm.Questions.Count})" : "";
+        ShowEvent("permission", perm.Project, perm.What + step, null, q.Text);
+        PermButtons.Visibility = Visibility.Collapsed;
+        QuestionPanel.Visibility = Visibility.Visible;
+        QuestionSend.Visibility = q.Multi ? Visibility.Visible : Visibility.Collapsed;
+        QuestionSend.IsEnabled = false;
+        QuestionOptions.Children.Clear();
+        for (int i = 0; i < q.Options.Length; i++)
+        {
+            var b = new Button { Content = q.Options[i], Tag = q.Options[i], Style = (Style)FindResource("PillAction"), Margin = new Thickness(0, 0, 6, 6) };
+            if (q.Descriptions[i].Length > 0) b.ToolTip = q.Descriptions[i];
+            System.Windows.Automation.AutomationProperties.SetName(b, q.Options[i]);
+            b.Click += QuestionOption_Click;
+            QuestionOptions.Children.Add(b);
+        }
+    }
+
+    void QuestionOption_Click(object s, RoutedEventArgs e)
+    {
+        if (_qPerm?.Questions is not { } qs) return;
+        var b = (Button)s;
+        string option = (string)b.Tag;
+        if (!qs[_qIndex].Multi) { NextQuestion(new[] { option }); return; }
+        bool on = _qSelected.Add(option) || !_qSelected.Remove(option);
+        b.Background = on ? Theme.Res("N.Strong") : Theme.Res("N.Button");
+        b.Foreground = on ? Theme.Res("N.OnStrong") : Theme.Res("N.Fg");
+        QuestionSend.IsEnabled = _qSelected.Count > 0;
+    }
+
+    void QuestionSend_Click(object s, RoutedEventArgs e)
+    {
+        if (_qPerm?.Questions is not { } qs || _qSelected.Count == 0) return;
+        // Na ordem em que o Claude ofereceu, não na ordem dos cliques.
+        NextQuestion(qs[_qIndex].Options.Where(_qSelected.Contains).ToArray());
+    }
+
+    void NextQuestion(string[] picked)
+    {
+        var perm = _qPerm!;
+        _qPicked.Add(picked);
+        if (++_qIndex < perm.Questions!.Count) { QuestionPanel.Visibility = Visibility.Collapsed; ShowQuestion(perm); return; }
+        AgentHub.AnswerQuestions(perm, _qPicked.ToList());
+        React("approving", 2);
+    }
+
+    void QuestionTerminal_Click(object s, RoutedEventArgs e) => _qPerm?.Answer.TrySetResult(""); // vazio: o Claude Code pergunta no terminal
 
     void Permission_Click(object s, RoutedEventArgs e)
     {

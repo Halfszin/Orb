@@ -11,12 +11,20 @@ public sealed class AgentHub
         public string Id = "", Project = "", Status = "";
         public bool Busy;
         public DateTime Updated;
+        public readonly List<FileEdit> Edits = new(); // diff ao vivo, como no coucou
     }
+
+    /// <summary>Uma edição de arquivo: linhas começando com '+', '-' ou ' ' (vazio se grande demais).</summary>
+    public sealed record FileEdit(string File, int Added, int Removed, string[] Lines);
+
+    /// <summary>Uma pergunta do AskUserQuestion: o texto, as opções e se aceita várias.</summary>
+    public sealed record Question(string Text, string[] Options, string[] Descriptions, bool Multi);
 
     public sealed class Permission
     {
-        public string Project = "", Tool = "", Detail = "", What = "", Code = "";
-        public JsonNode? Suggestions;
+        public string Project = "", Tool = "", Detail = "", What = "", Code = "", SessionId = "";
+        public JsonNode? Suggestions, Input;
+        public List<Question>? Questions; // não-nulo: é uma pergunta do Claude, não um pedido de permissão
         public readonly TaskCompletionSource<string> Answer = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
@@ -56,6 +64,17 @@ public sealed class AgentHub
             case "SessionStart": s.Status = "Começou"; s.Busy = false; break;
             case "UserPromptSubmit": s.Status = "Pensando…"; s.Busy = true; break;
             case "PreToolUse": s.Status = Describe(Str(p, "tool_name") ?? "", p["tool_input"]); s.Busy = true; break;
+            case "PostToolUse":
+                s.Busy = true;
+                // A ferramenta rodou: o que estava pendente nesta sessão foi respondido no terminal.
+                foreach (var stale in Pending.Where(x => x.SessionId == id)) stale.Answer.TrySetResult("");
+                if (ParseEdit(Str(p, "tool_name") ?? "", p["tool_input"], p["tool_response"]) is { } edit)
+                {
+                    s.Edits.Add(edit);
+                    if (s.Edits.Count > 50) s.Edits.RemoveAt(0);
+                    s.Status = $"Editou {edit.File} +{edit.Added} −{edit.Removed}";
+                }
+                break;
             case "Notification":
                 s.Status = "Esperando você"; s.Busy = false;
                 NeedsYou?.Invoke(project, Str(p, "message") ?? "O Claude precisa de você");
@@ -69,10 +88,11 @@ public sealed class AgentHub
                 s.Status = "Pedindo permissão"; s.Busy = false;
                 string tool = Str(p, "tool_name") ?? "";
                 var input = p["tool_input"];
+                var questions = tool == "AskUserQuestion" ? ParseQuestions(input) : null;
                 var perm = new Permission
                 {
-                    Project = project, Tool = tool, Detail = Describe(tool, input, full: true), Suggestions = p["permission_suggestions"]?.DeepClone(),
-                    What = tool switch
+                    Project = project, Tool = tool, SessionId = id, Input = input?.DeepClone(), Questions = questions, Detail = Describe(tool, input, full: true), Suggestions = p["permission_suggestions"]?.DeepClone(),
+                    What = questions != null ? "Claude Code tem uma pergunta" : tool switch
                     {
                         "Bash" or "PowerShell" => "Claude Code quer rodar um comando",
                         "Edit" or "MultiEdit" or "Write" or "NotebookEdit" => "Claude Code quer mexer num arquivo",
@@ -88,7 +108,7 @@ public sealed class AgentHub
                 var done = await Task.WhenAny(perm.Answer.Task, Task.Delay(DecisionTimeout));
                 Pending.Remove(perm);
                 answer = done == perm.Answer.Task ? perm.Answer.Task.Result : "";
-                if (Sessions.TryGetValue(id, out var still)) { still.Status = answer.Contains("deny") ? "Permissão negada" : "Trabalhando"; still.Busy = !answer.Contains("deny"); }
+                if (Sessions.TryGetValue(id, out var still)) { still.Status = answer.Contains("\"deny\"") ? "Permissão negada" : "Trabalhando"; still.Busy = !answer.Contains("\"deny\""); }
                 break;
         }
         // Sessões paradas há muito tempo somem da lista.
@@ -106,6 +126,79 @@ public sealed class AgentHub
         if (choice == "always" && suggestions is JsonArray { Count: > 0 }) decision["updatedPermissions"] = suggestions.DeepClone();
         return new JsonObject { ["hookSpecificOutput"] = new JsonObject { ["hookEventName"] = "PermissionRequest", ["decision"] = decision } }.ToJsonString();
     }
+
+    /// <summary>Responde a pergunta: o Claude Code recebe a mesma entrada com "answers" (texto da pergunta → opção, ou lista de opções).</summary>
+    public static void AnswerQuestions(Permission perm, IReadOnlyList<string[]> picked) => perm.Answer.TrySetResult(QuestionResponse(perm, picked) ?? "");
+
+    public static string? QuestionResponse(Permission perm, IReadOnlyList<string[]> picked)
+    {
+        if (perm.Questions is not { } qs || perm.Input is not JsonObject input || picked.Count != qs.Count) return null;
+        var answers = new JsonObject();
+        for (int i = 0; i < qs.Count; i++)
+        {
+            // Só aceita opções que o Claude ofereceu; nada inventado vai para a resposta.
+            if (picked[i].Length == 0 || picked[i].Any(o => !qs[i].Options.Contains(o)) || (!qs[i].Multi && picked[i].Length != 1)) return null;
+            answers[qs[i].Text] = qs[i].Multi ? new JsonArray(picked[i].Select(o => (JsonNode)JsonValue.Create(o)!).ToArray()) : picked[i][0];
+        }
+        var updated = input.DeepClone().AsObject();
+        updated["answers"] = answers;
+        var decision = new JsonObject { ["behavior"] = "allow", ["updatedInput"] = updated };
+        return new JsonObject { ["hookSpecificOutput"] = new JsonObject { ["hookEventName"] = "PermissionRequest", ["decision"] = decision } }.ToJsonString();
+    }
+
+    /// <summary>As perguntas, se o notch consegue mostrar todas como opções; senão null e fica para o terminal.</summary>
+    public static List<Question>? ParseQuestions(JsonNode? input)
+    {
+        if (input?["questions"] is not JsonArray arr || arr.Count == 0) return null;
+        var list = new List<Question>();
+        foreach (var q in arr)
+        {
+            string text = Str(q, "question") ?? "";
+            var opts = (q?["options"] as JsonArray ?? new JsonArray()).Where(o => Str(o, "label") is { Length: > 0 }).ToList();
+            if (text.Length == 0 || opts.Count < 2) return null;
+            bool multi = q?["multiSelect"] is JsonValue mv && mv.TryGetValue(out bool m) && m;
+            list.Add(new Question(text, opts.Select(o => Str(o, "label")!).ToArray(), opts.Select(o => Str(o, "description") ?? "").ToArray(), multi));
+        }
+        return list;
+    }
+
+    const int MaxDiffChars = 200 * 1024, MaxDiffLines = 4000;
+
+    /// <summary>O diff de um Edit/MultiEdit/Write. Usa o structuredPatch que o Claude Code devolve; sem ele, o antes/depois da entrada.</summary>
+    public static FileEdit? ParseEdit(string tool, JsonNode? input, JsonNode? response)
+    {
+        if (tool is not ("Edit" or "MultiEdit" or "Write")) return null;
+        string? path = Str(input, "file_path");
+        if (path == null) return null;
+        var lines = new List<string>();
+        if (response?["structuredPatch"] is JsonArray { Count: > 0 } hunks)
+        {
+            foreach (var h in hunks)
+            {
+                if (lines.Count > 0) lines.Add(" …");
+                foreach (var l in h?["lines"] as JsonArray ?? new JsonArray())
+                    if (l is JsonValue v && v.TryGetValue(out string? t)) lines.Add(t);
+            }
+        }
+        else if (tool == "Write") lines.AddRange(Split(Str(input, "content")).Select(l => "+" + l));
+        else
+        {
+            var edits = tool == "Edit" ? new JsonArray(input!.DeepClone()) : input?["edits"] as JsonArray ?? new JsonArray();
+            foreach (var e in edits)
+            {
+                if (lines.Count > 0) lines.Add(" …");
+                lines.AddRange(Split(Str(e, "old_string")).Select(l => "-" + l));
+                lines.AddRange(Split(Str(e, "new_string")).Select(l => "+" + l));
+            }
+        }
+        int added = lines.Count(l => l.StartsWith('+')), removed = lines.Count(l => l.StartsWith('-'));
+        if (added == 0 && removed == 0) return null;
+        // Grande demais: guarda só as contas, como o coucou.
+        bool tooBig = lines.Count > MaxDiffLines || lines.Sum(l => l.Length) > MaxDiffChars;
+        return new FileEdit(Path.GetFileName(path), added, removed, tooBig ? Array.Empty<string>() : lines.ToArray());
+    }
+
+    static IEnumerable<string> Split(string? text) => string.IsNullOrEmpty(text) ? Array.Empty<string>() : text.TrimEnd('\n').Split('\n').Select(l => l.TrimEnd('\r'));
 
     public static string Describe(string tool, JsonNode? input, bool full = false)
     {
