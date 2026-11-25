@@ -30,6 +30,7 @@ public sealed class Config
     public string DictReplacements { get; set; } = "";              // "de => para", uma por linha
     public string DictSnippets { get; set; } = "";                  // "frase => texto", uma por linha           // "grande" ou "compacto"
     public List<string> HiddenTabs { get; set; } = new();       // abas tiradas do acesso rápido (tags)
+    public List<string> TabOrder { get; set; } = new();         // ordem das páginas (bolinhas); vazio = a de fábrica
     // Código secreto que vai no endereço dos hooks: sem ele o Orbi recusa o evento.
     public string AgentToken { get; set; } = Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
 

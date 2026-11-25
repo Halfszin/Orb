@@ -38,13 +38,7 @@ public partial class SettingsWindow : Window
         ShowModelStatus();
         ShowDictStats();
         Loaded += (_, _) => BuildNav();
-        foreach (var (tag, name) in new[] { ("calendar", "Calendário"), ("shelf", "Bandeja"), ("clip", "Área de transferência"), ("notes", "Notas"),
-                                            ("system", "Sistema"), ("todo", "Tarefas"), ("shortcuts", "Atalhos"), ("ai", "IA") })
-        {
-            var chip = new CheckBox { Content = name, Tag = tag, Style = (Style)FindResource("Chip"), IsChecked = !Config.Current.HiddenTabs.Contains(tag) };
-            chip.Click += Tab_Click;
-            TabChips.Children.Add(chip);
-        }
+        BuildTabRows();
         ShowAgentsStatus();
         VersionText.Text = $"Orbi {Updater.Current}";
         Updater.Changed += ShowUpdate;
@@ -258,7 +252,8 @@ public partial class SettingsWindow : Window
         ShowHotkeyStatus();
     }
 
-    void ShowHotkeyStatus() => HotkeyStatus.Text = "Ctrl+Alt+Espaço abre e fecha o notch · Ctrl+Alt+C abre o chat."
+    void ShowHotkeyStatus() => HotkeyStatus.Text = "Ctrl+Alt+Espaço abre e fecha o notch · Ctrl+Alt+C abre o chat · Ctrl+Alt+A vai para o pedido do Claude · "
+        + "Ctrl+Alt+T abre o terminal da sessão · Ctrl+Alt+→ e ← trocam de página · Ctrl+Alt+S liga e desliga os sons."
         + (App.OrbiWindow.HotkeyProblem is { } p ? " " + p : "");
 
     void Sound_Click(object s, RoutedEventArgs e)
@@ -352,14 +347,57 @@ public partial class SettingsWindow : Window
         App.OrbiWindow.ApplySize();
     }
 
-    void Tab_Click(object s, RoutedEventArgs e)
+    // Uma linha por página: posição, nome, subir/descer e a chave de mostrar (a Início não some).
+    void BuildTabRows()
     {
-        var chip = (CheckBox)s;
-        string tag = (string)chip.Tag;
-        Config.Current.HiddenTabs.Remove(tag);
-        if (chip.IsChecked != true) Config.Current.HiddenTabs.Add(tag);
+        TabRows.Children.Clear();
+        var order = PageOrder.Fix(Config.Current.TabOrder);
+        for (int i = 0; i < order.Count; i++)
+        {
+            string tag = order[i], name = PageOrder.All.First(p => p.Tag == tag).Name;
+            bool visible = tag == "home" || !Config.Current.HiddenTabs.Contains(tag);
+            var row = new DockPanel { Margin = new Thickness(0, 3, 0, 3) };
+            var right = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+            DockPanel.SetDock(right, Dock.Right);
+            foreach (int dir in new[] { -1, 1 })
+            {
+                var b = new Button
+                {
+                    Content = dir < 0 ? "\uE70E" : "\uE70D", FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 11, Style = (Style)FindResource("PillBtn"),
+                    Margin = new Thickness(0, 0, 6, 0), IsEnabled = dir < 0 ? i > 0 : i < order.Count - 1, ToolTip = dir < 0 ? "Subir" : "Descer",
+                };
+                b.Opacity = b.IsEnabled ? 1 : 0.35;
+                System.Windows.Automation.AutomationProperties.SetName(b, $"{(dir < 0 ? "Subir" : "Descer")} {name}");
+                int at = i, d = dir;
+                b.Click += (_, _) => { var o = PageOrder.Fix(Config.Current.TabOrder); PageOrder.Move(o, at, d); Config.Current.TabOrder = o; TabsChanged(); };
+                right.Children.Add(b);
+            }
+            if (tag == "home")
+                right.Children.Add(new TextBlock { Text = "sempre", Width = 50, Foreground = Brushes.Gray, FontSize = 12, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center });
+            else
+            {
+                var sw = new CheckBox { Style = (Style)FindResource("Switch"), IsChecked = visible, VerticalAlignment = VerticalAlignment.Center };
+                System.Windows.Automation.AutomationProperties.SetName(sw, $"Mostrar {name}");
+                sw.Click += (_, _) =>
+                {
+                    Config.Current.HiddenTabs.Remove(tag);
+                    if (sw.IsChecked != true) Config.Current.HiddenTabs.Add(tag);
+                    TabsChanged();
+                };
+                right.Children.Add(sw);
+            }
+            row.Children.Add(right);
+            row.Children.Add(new TextBlock { Text = $"{i + 1}.", Width = 24, Foreground = Brushes.Gray, FontSize = 13, VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(new TextBlock { Text = name, FontSize = 14, FontWeight = FontWeights.SemiBold, Foreground = visible ? Brushes.White : Brushes.Gray, VerticalAlignment = VerticalAlignment.Center });
+            TabRows.Children.Add(row);
+        }
+    }
+
+    void TabsChanged()
+    {
         SaveConfig(null, null);
         App.OrbiWindow.ApplyTabs();
+        BuildTabRows();
     }
 
     void ShowAgentsStatus(string? extra = null)

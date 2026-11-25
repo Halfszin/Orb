@@ -150,30 +150,63 @@ public partial class MainWindow : Window
 
     public string? HotkeyProblem { get; private set; }
 
-    /// <summary>Ctrl+Alt+Espaço abre/fecha o notch; Ctrl+Alt+C abre o chat.</summary>
+    // Atalhos (como no coucou). Conferidos contra o AltGr do ABNT2/português: nenhum digita caractere.
+    static readonly (int Id, uint Vk, string Name)[] HotkeyList =
+    {
+        (1, 0x20, "Ctrl+Alt+Espaço"), (2, 0x43, "Ctrl+Alt+C"), (3, 0x41, "Ctrl+Alt+A"), (4, 0x54, "Ctrl+Alt+T"),
+        (5, 0x27, "Ctrl+Alt+→"), (6, 0x25, "Ctrl+Alt+←"), (7, 0x53, "Ctrl+Alt+S"),
+    };
+
     public void ApplyHotkeys()
     {
         var h = new WindowInteropHelper(this).Handle;
-        UnregisterHotKey(h, 1);
-        UnregisterHotKey(h, 2);
+        foreach (var k in HotkeyList) UnregisterHotKey(h, k.Id);
         HotkeyProblem = null;
         if (!Config.Current.Hotkeys) return;
         const uint ctrlAlt = 0x0002 | 0x0001 | 0x4000; // CONTROL | ALT | NOREPEAT
-        var failed = new List<string>();
-        if (!RegisterHotKey(h, 1, ctrlAlt, 0x20)) failed.Add("Ctrl+Alt+Espaço");
-        if (!RegisterHotKey(h, 2, ctrlAlt, 0x43)) failed.Add("Ctrl+Alt+C");
-        if (failed.Count > 0) HotkeyProblem = string.Join(" e ", failed) + " já é usado por outro programa.";
+        var failed = HotkeyList.Where(k => !RegisterHotKey(h, k.Id, ctrlAlt, k.Vk)).Select(k => k.Name).ToList();
+        if (failed.Count > 0) HotkeyProblem = string.Join(", ", failed) + (failed.Count == 1 ? " já é usado" : " já são usados") + " por outro programa.";
     }
 
     void OnHotkey(int id)
     {
-        if (id == 1) { Resize(!_open); return; }
-        if (id != 2) return;
-        if (!_open) Resize(true);
-        TabAi.IsChecked = true;
-        AiView.FocusChat();
-        AllowKeyboard(true);
+        switch (id)
+        {
+            case 1: Resize(!_open); break;
+            case 2:
+                if (!_open) Resize(true);
+                TabAi.IsChecked = true;
+                AiView.FocusChat();
+                AllowKeyboard(true);
+                break;
+            case 3: // vai para a permissão ou pergunta esperando
+                if (Agents.Pending.Count == 0) { Toast("\uE73E", "Nada esperando você", null, 2.5); break; }
+                if (!_open) Resize(true);
+                _event = null; // mostra de novo mesmo se já estava na tela
+                ShowPermission();
+                break;
+            case 4: OpenTerminal(); break;
+            case 5 or 6:
+                if (!_open) Resize(true);
+                StepPage(id == 5 ? 1 : -1);
+                break;
+            case 7:
+                Config.Current.Sounds = !Config.Current.Sounds;
+                try { Config.Current.Save(); } catch { }
+                Toast(Config.Current.Sounds ? "\uE767" : "\uE74F", Config.Current.Sounds ? "Sons ligados" : "Sons desligados", null, 2.5);
+                break;
+        }
     }
+
+    /// <summary>Traz a janela do terminal da sessão: a do pedido aberto, senão a última que deu sinal.</summary>
+    public void OpenTerminal(string? sessionId = null)
+    {
+        sessionId ??= Agents.Pending.FirstOrDefault()?.SessionId ?? Agents.LastSessionId;
+        if (!SessionWindow.Focus(sessionId))
+            Toast("\uE756", sessionId == null ? "Nenhuma sessão do Claude Code agora" : "Não achei a janela dessa sessão", null, 3.5);
+    }
+
+    void OpenTerminal_Click(object s, RoutedEventArgs e) => OpenTerminal();
 
     // ---------- esconder quando parado ----------
 
@@ -382,6 +415,13 @@ public partial class MainWindow : Window
         // Os eventos chegam numa thread do servidor; o estado mora na thread da interface.
         AgentServer = AgentServer.Start(cfg.AgentPort, cfg.AgentToken,
             (evt, payload) => Dispatcher.InvokeAsync(() => Agents.Handle(evt, payload)).Task.Unwrap());
+        if (AgentServer != null)
+            AgentServer.Connected = (clientPort, payload) =>
+            {
+                if (payload["session_id"]?.GetValue<string>() is not { } sid) return;
+                if (payload["hook_event_name"]?.GetValue<string>() == "SessionEnd") SessionWindow.Forget(sid);
+                else SessionWindow.Remember(sid, clientPort, AgentServer.Port);
+            };
         bool portMoved = AgentServer != null && AgentServer.Port != cfg.AgentPort;
         if (portMoved) cfg.AgentPort = AgentServer!.Port;
         try { cfg.Save(); } catch { } // guarda o código secreto gerado na primeira vez
@@ -565,7 +605,13 @@ public partial class MainWindow : Window
         React("approving", 2);
     }
 
-    void QuestionTerminal_Click(object s, RoutedEventArgs e) => _qPerm?.Answer.TrySetResult(""); // vazio: o Claude Code pergunta no terminal
+    // Vazio: o Claude Code pergunta no terminal, que já vem para a frente.
+    void QuestionTerminal_Click(object s, RoutedEventArgs e)
+    {
+        string? sid = _qPerm?.SessionId;
+        _qPerm?.Answer.TrySetResult("");
+        if (sid != null) SessionWindow.Focus(sid);
+    }
 
     void Permission_Click(object s, RoutedEventArgs e)
     {
@@ -613,16 +659,37 @@ public partial class MainWindow : Window
 
     public void ApplySize() => SetEdge(Edge, EdgePos, save: false);
 
-    /// <summary>Esconde as abas que você tirou do acesso rápido (a Início fica sempre).</summary>
+    /// <summary>Põe as páginas na ordem das configurações e esconde as que você tirou (a Início fica sempre).</summary>
     public void ApplyTabs()
     {
-        foreach (var tab in TabBar.Children.OfType<RadioButton>())
+        var tabs = TabBar.Children.OfType<RadioButton>().ToDictionary(t => (string)t.Tag);
+        TabBar.Children.Clear();
+        foreach (var tag in PageOrder.Fix(Config.Current.TabOrder))
         {
-            bool hidden = (string)tab.Tag != "home" && Config.Current.HiddenTabs.Contains((string)tab.Tag);
+            var tab = tabs[tag];
+            bool hidden = tag != "home" && Config.Current.HiddenTabs.Contains(tag);
             tab.Visibility = hidden ? Visibility.Collapsed : Visibility.Visible;
+            TabBar.Children.Add(tab);
             if (hidden && tab.IsChecked == true) TabHome.IsChecked = true;
         }
     }
+
+    // Rodinha do mouse no notch aberto: página seguinte/anterior (listas com rolagem usam a rodinha antes).
+    void Pill_MouseWheel(object s, MouseWheelEventArgs e)
+    {
+        if (!_open || e.Handled) return;
+        StepPage(e.Delta < 0 ? 1 : -1);
+        e.Handled = true;
+    }
+
+    void StepPage(int dir)
+    {
+        var visible = TabBar.Children.OfType<RadioButton>().Where(t => t.Visibility == Visibility.Visible).ToList();
+        var current = visible.FirstOrDefault(t => t.IsChecked == true);
+        string next = PageOrder.Step(visible.Select(t => (string)t.Tag).ToList(), (string?)current?.Tag ?? "home", dir);
+        visible.First(t => (string)t.Tag == next).IsChecked = true;
+    }
+
     void Exit_Click(object s, RoutedEventArgs e) => Application.Current.Shutdown();
 
     // ---------- humor do avatar ----------

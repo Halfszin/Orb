@@ -178,6 +178,10 @@ public partial class AiPage : UserControl
         foreach (var s in _hub.Sessions.Values.OrderByDescending(x => x.Updated))
         {
             Row((s.Busy ? "● " : "○ ") + s.Project, s.Status, target: AgentRows);
+            var sessionRow = (FrameworkElement)AgentRows.Children[^1];
+            sessionRow.Cursor = Cursors.Hand;
+            sessionRow.ToolTip = "Abrir o terminal desta sessão";
+            sessionRow.MouseLeftButtonUp += (_, _) => App.OrbiWindow.OpenTerminal(s.Id);
             // Últimas edições: clique para ver o diff (como no coucou).
             foreach (var edit in s.Edits.AsEnumerable().Reverse().Take(5))
             {

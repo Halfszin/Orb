@@ -19,5 +19,6 @@
     <Compile Include="../AgentServer.cs" />
     <Compile Include="../DictationText.cs" />
     <Compile Include="../Transcriber.cs" />
+    <Compile Include="../PageOrder.cs" />
   </ItemGroup>
 </Project>

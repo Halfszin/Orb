@@ -35,6 +35,7 @@ public sealed class AgentHub
     public readonly List<Permission> Pending = new();
     public PlanUsage? Plan { get; private set; }
     public bool Busy => Sessions.Values.Any(s => s.Busy);
+    public string? LastSessionId { get; private set; } // a última sessão que mandou evento ("Abrir terminal" sem pedido aberto)
 
     public event Action? Changed;
     public event Action<string, string>? Finished;         // projeto, última mensagem do Claude
@@ -58,6 +59,7 @@ public sealed class AgentHub
         if (!Sessions.TryGetValue(id, out var s)) Sessions[id] = s = new Session { Id = id };
         s.Project = project;
         s.Updated = DateTime.Now;
+        LastSessionId = id;
         string? answer = null;
         switch (evt)
         {

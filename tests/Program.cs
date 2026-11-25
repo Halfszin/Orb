@@ -254,6 +254,16 @@ if (Environment.GetEnvironmentVariable("ORBI_WHISPER_MODEL") is { Length: > 0 } 
     if (!(lower.Contains("weather") && lower.Contains("today"))) failures.Add("voz: transcrição inesperada: " + heard);
 }
 
+// ---- Ordem das páginas (bolinhas) ----
+var po = PageOrder.Fix(new[] { "ai", "xyz", "ai", "notes" });
+if (po[0] != "ai" || po[1] != "notes" || po.Count != PageOrder.All.Length || po.Distinct().Count() != po.Count) failures.Add("páginas: conserto da ordem " + string.Join(",", po));
+PageOrder.Move(po, 0, -1); PageOrder.Move(po, po.Count - 1, 1);
+if (po[0] != "ai") failures.Add("páginas: mover para fora da lista");
+PageOrder.Move(po, 0, 1);
+if (po[0] != "notes" || po[1] != "ai") failures.Add("páginas: mover");
+if (PageOrder.Step(new[] { "home", "ai" }, "ai", 1) != "ai" || PageOrder.Step(new[] { "home", "ai" }, "ai", -1) != "home" || PageOrder.Step(new[] { "home" }, "sumiu", 1) != "home")
+    failures.Add("páginas: próxima/anterior");
+
 foreach (var f in failures) Console.WriteLine("FALHA " + f);
 ok &= failures.Count == 0;
 Console.WriteLine(ok ? "OK" : "FALHOU");

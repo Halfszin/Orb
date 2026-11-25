@@ -19,6 +19,9 @@ public sealed class AgentServer
 
     public int Port { get; }
 
+    /// <summary>Antes de cada evento: a porta do lado do curl (para achar o processo dele) e o evento.</summary>
+    public Action<int, JsonObject>? Connected;
+
     AgentServer(TcpListener listener, string token, Func<string, JsonObject, Task<string>> handle)
     {
         _listener = listener;
@@ -70,6 +73,8 @@ public sealed class AgentServer
                 return;
             }
             if (JsonNode.Parse(body) is not JsonObject payload) { await Reply(stream, 400, ""); return; }
+            if (Connected != null && client.Client.RemoteEndPoint is IPEndPoint remote)
+                try { Connected(remote.Port, payload); } catch { }
             string answer = await _handle(parts[1], payload);
             await Reply(stream, 200, answer);
         }
