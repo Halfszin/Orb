@@ -162,7 +162,9 @@ public partial class AiPage : UserControl
 
     void DrawAgents()
     {
+        ShowProject();
         AgentRows.Children.Clear();
+        if (_sessionError != null) Row("⚠ " + _sessionError, "", target: AgentRows);
         if (_hub == null) return;
         if (_hub.Plan is { } plan)
         {
@@ -192,6 +194,71 @@ public partial class AiPage : UserControl
                 row.MouseLeftButtonUp += (_, _) => ShowDiff(s.Project, edit);
             }
         }
+    }
+
+    // ---------- nova sessão ----------
+
+    string? _project; // pasta escolhida; começa na mais recente
+    string? _sessionError;
+
+    void ShowProject()
+    {
+        _project ??= Config.Current.RecentProjects.FirstOrDefault();
+        ProjectBtn.Content = _project != null ? System.IO.Path.GetFileName(_project.TrimEnd('\\', '/')) : "Escolher pasta";
+    }
+
+    void Project_Click(object s, RoutedEventArgs e)
+    {
+        var menu = new ContextMenu { PlacementTarget = ProjectBtn, Placement = System.Windows.Controls.Primitives.PlacementMode.Top };
+        foreach (var dir in Config.Current.RecentProjects)
+        {
+            var item = new MenuItem { Header = System.IO.Path.GetFileName(dir.TrimEnd('\\', '/')), ToolTip = dir, IsChecked = dir == _project };
+            item.Click += (_, _) => { _project = dir; ShowProject(); };
+            menu.Items.Add(item);
+        }
+        if (menu.Items.Count > 0) menu.Items.Add(new Separator());
+        var pick = new MenuItem { Header = "Escolher pasta…" };
+        pick.Click += (_, _) =>
+        {
+            var dlg = new Microsoft.Win32.OpenFolderDialog { Title = "Pasta da nova sessão do Claude Code", InitialDirectory = _project ?? "" };
+            if (dlg.ShowDialog() != true) return;
+            _project = dlg.FolderName;
+            AddRecentProject(_project);
+            ShowProject();
+        };
+        menu.Items.Add(pick);
+        menu.IsOpen = true;
+    }
+
+    /// <summary>Pasta onde rodou uma sessão: vai para o topo da lista (no máximo 8).</summary>
+    public static void AddRecentProject(string dir)
+    {
+        var list = Config.Current.RecentProjects;
+        if (list.FirstOrDefault() == dir) return;
+        list.RemoveAll(d => string.Equals(d, dir, StringComparison.OrdinalIgnoreCase));
+        list.Insert(0, dir);
+        if (list.Count > 8) list.RemoveRange(8, list.Count - 8);
+        try { Config.Current.Save(); } catch { }
+    }
+
+    void StartSession_Click(object s, RoutedEventArgs e) => StartSession();
+
+    void SessionInput_KeyDown(object s, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) { e.Handled = true; StartSession(); }
+    }
+
+    void SessionInput_TextChanged(object s, TextChangedEventArgs e) =>
+        SessionHint.Visibility = SessionInput.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+    void StartSession()
+    {
+        if (_project == null) { Project_Click(ProjectBtn, new RoutedEventArgs()); return; }
+        _sessionError = SessionWindow.StartSession(_project, SessionInput.Text.Trim());
+        CloseDiff();
+        if (_sessionError != null) return;
+        AddRecentProject(_project);
+        SessionInput.Clear();
     }
 
     AgentHub.FileEdit? _diff; // aberto: o painel mostra o diff e não se redesenha a cada evento

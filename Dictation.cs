@@ -126,7 +126,7 @@ public sealed class Dictation : IDisposable
     }
 
     // Cola pelo Ctrl+V e devolve à área de transferência o que estava lá antes.
-    static async Task Paste(string text)
+    public static async Task Paste(string text)
     {
         string? before = null;
         try { if (Clipboard.ContainsText()) before = Clipboard.GetText(); } catch { }

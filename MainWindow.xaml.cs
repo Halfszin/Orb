@@ -59,6 +59,7 @@ public partial class MainWindow : Window
     readonly NotificationWatcher _notifications = new();
     public readonly Dictation Dictation = new();
     public readonly AgentHub Agents = new();
+    readonly HashSet<string> _seenSessions = new(); // sessões cuja pasta já foi para a lista de recentes
     public AgentServer? AgentServer { get; private set; }
     readonly DispatcherTimer _look = new() { Interval = TimeSpan.FromMilliseconds(80) };
     DateTime _weatherAt = DateTime.MinValue;
@@ -202,8 +203,9 @@ public partial class MainWindow : Window
     public void OpenTerminal(string? sessionId = null)
     {
         sessionId ??= Agents.Pending.FirstOrDefault()?.SessionId ?? Agents.LastSessionId;
-        if (!SessionWindow.Focus(sessionId))
-            Toast("\uE756", sessionId == null ? "Nenhuma sessão do Claude Code agora" : "Não achei a janela dessa sessão", null, 3.5);
+        if (SessionWindow.Focus(sessionId)) return;
+        if (_open) Resize(false); // o aviso aparece no notch fechado
+        Toast("\uE756", sessionId == null ? "Nenhuma sessão do Claude Code agora" : "Não achei a janela dessa sessão", null, 3.5);
     }
 
     void OpenTerminal_Click(object s, RoutedEventArgs e) => OpenTerminal();
@@ -264,6 +266,25 @@ public partial class MainWindow : Window
         if (ShelfView.Dragging) return;
         if (!_open) Resize(true);
         TabShelf.IsChecked = true;
+        if (e.Data.GetDataPresent(DataFormats.FileDrop)) ShelfView.ShowSessions(Agents.Sessions.Values);
+    }
+
+    // Saiu de verdade do notch (não só passou de um elemento para outro): some a lista de sessões.
+    void Pill_DragLeave(object s, DragEventArgs e)
+    {
+        var p = e.GetPosition(Pill);
+        if (p.X <= 0 || p.Y <= 0 || p.X >= Pill.ActualWidth || p.Y >= Pill.ActualHeight) ShelfView.HideSessions();
+    }
+
+    // Arquivo solto numa sessão: traz o terminal dela e cola o caminho no prompt; sem a janela, copia.
+    async void DropOnSession(string sessionId, string[] files)
+    {
+        string text = AgentHub.DropText(files);
+        React("happy", 2);
+        if (SessionWindow.Focus(sessionId)) { await Task.Delay(200); await Dictation.Paste(text); return; }
+        try { Clipboard.SetText(text); } catch { }
+        Resize(false);
+        Toast("\uE8C8", "Não achei o terminal: caminho copiado, cole lá", null, 4);
     }
 
     void Pill_DragOver(object s, DragEventArgs e)
@@ -274,6 +295,7 @@ public partial class MainWindow : Window
 
     void Pill_Drop(object s, DragEventArgs e)
     {
+        ShelfView.HideSessions();
         if (ShelfView.Dragging) return;
         if (ShelfView.Accept(e.Data))
         {
@@ -430,11 +452,14 @@ public partial class MainWindow : Window
         // Hooks de uma versão antiga: põe os eventos novos (só as entradas do Orbi mudam, com backup).
         else if (AgentServer != null && HookInstaller.IsOutdated())
             try { HookInstaller.Install(AgentServer.Port, cfg.AgentToken); } catch { }
+        ShelfView.DroppedOnSession += DropOnSession;
         Agents.PermissionAsked += _ => ShowPermission();
         Agents.Changed += () =>
         {
             if (Agents.Pending.Count > 0) ShowPermission();
             else if (_event == "permission") HideEvent();
+            foreach (var ses in Agents.Sessions.Values.Where(x => x.Cwd.Length > 0 && _seenSessions.Add(x.Id)))
+                AiPage.AddRecentProject(ses.Cwd);
             int working = Agents.Sessions.Values.Count(x => x.Busy);
             // Compacto para caber ao lado das 9 abas; o texto completo fica na dica.
             AgentsCount.Text = $"● {working}";
@@ -653,6 +678,7 @@ public partial class MainWindow : Window
                  { ("home", HomePage), ("calendar", CalendarView), ("shelf", ShelfView), ("clip", ClipView), ("notes", NotesView),
                    ("system", SystemView), ("todo", TodoView), ("shortcuts", ShortcutsView), ("ai", AiView) })
             page.Visibility = name == tag ? Visibility.Visible : Visibility.Collapsed;
+        UpdatePageArrows();
     }
 
     void Settings_Click(object s, RoutedEventArgs e) => App.OpenSettings();
@@ -672,6 +698,7 @@ public partial class MainWindow : Window
             TabBar.Children.Add(tab);
             if (hidden && tab.IsChecked == true) TabHome.IsChecked = true;
         }
+        UpdatePageArrows();
     }
 
     // Rodinha do mouse no notch aberto: página seguinte/anterior (listas com rolagem usam a rodinha antes).
@@ -680,6 +707,17 @@ public partial class MainWindow : Window
         if (!_open || e.Handled) return;
         StepPage(e.Delta < 0 ? 1 : -1);
         e.Handled = true;
+    }
+
+    void PageArrow_Click(object s, RoutedEventArgs e) => StepPage(int.Parse((string)((Button)s).Tag));
+
+    // Some a seta quando não há página antes/depois (Hidden: as bolinhas não pulam de lugar).
+    void UpdatePageArrows()
+    {
+        var visible = TabBar.Children.OfType<RadioButton>().Where(t => t.Visibility == Visibility.Visible).ToList();
+        int i = visible.FindIndex(t => t.IsChecked == true);
+        PagePrev.Visibility = i > 0 ? Visibility.Visible : Visibility.Hidden;
+        PageNext.Visibility = i >= 0 && i < visible.Count - 1 ? Visibility.Visible : Visibility.Hidden;
     }
 
     void StepPage(int dir)

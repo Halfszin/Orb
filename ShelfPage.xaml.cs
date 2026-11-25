@@ -29,6 +29,36 @@ public partial class ShelfPage : UserControl
         Theme.Changed += Draw;
     }
 
+    /// <summary>Arquivos soltos numa sessão do Claude Code: id da sessão e os caminhos.</summary>
+    public event Action<string, string[]>? DroppedOnSession;
+
+    public void ShowSessions(IEnumerable<AgentHub.Session> sessions)
+    {
+        SessionChips.Children.Clear();
+        foreach (var ses in sessions.OrderByDescending(x => x.Updated).Take(4))
+        {
+            var chip = new Border
+            {
+                Background = Theme.Res("N.Button"), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 5, 10, 5), Margin = new Thickness(0, 0, 0, 4), AllowDrop = true,
+                Child = new TextBlock { Text = ses.Project, FontSize = 12, FontWeight = FontWeights.SemiBold, MaxWidth = 150, TextTrimming = TextTrimming.CharacterEllipsis },
+            };
+            string id = ses.Id;
+            chip.DragEnter += (_, e) => chip.Background = Theme.Res("N.Hover");
+            chip.DragLeave += (_, e) => chip.Background = Theme.Res("N.Button");
+            chip.DragOver += (_, e) => { e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None; e.Handled = true; };
+            chip.Drop += (_, e) =>
+            {
+                e.Handled = true; // não vai para a bandeja
+                HideSessions();
+                if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0) DroppedOnSession?.Invoke(id, files);
+            };
+            SessionChips.Children.Add(chip);
+        }
+        SessionDrop.Visibility = SessionChips.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public void HideSessions() => SessionDrop.Visibility = Visibility.Collapsed;
+
     /// <summary>Recebe o que foi solto no notch. Devolve true se havia algo que dá para guardar.</summary>
     public bool Accept(IDataObject data)
     {

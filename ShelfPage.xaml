@@ -18,5 +18,12 @@
                 <WrapPanel x:Name="Items"/>
             </ScrollViewer>
         </DockPanel>
+        <!-- Durante o arraste: soltar numa sessão cola o caminho no terminal dela (como no coucou) -->
+        <Border x:Name="SessionDrop" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource N.Card}" CornerRadius="12" Padding="8" Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock Text="Ou numa sessão" FontSize="11" Foreground="#888" Margin="2,0,0,6"/>
+                <StackPanel x:Name="SessionChips"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

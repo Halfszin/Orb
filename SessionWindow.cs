@@ -50,6 +50,21 @@ public static class SessionWindow
         catch { return false; }
     }
 
+    /// <summary>Nova sessão (como no coucou): abre o terminal na pasta rodando o Claude Code com o pedido. Devolve o erro ou null.</summary>
+    public static string? StartSession(string folder, string prompt)
+    {
+        if (ClaudeCli.Find() is not { } claude) return "Claude Code não encontrado. Instale no PowerShell:  irm https://claude.ai/install.ps1 | iex";
+        if (!System.IO.Directory.Exists(folder)) return "Essa pasta não existe mais";
+        // Windows Terminal se tiver; senão o Claude Code abre o próprio console. Sem shell no meio: o pedido vai como um argumento só.
+        string wt = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "WindowsApps", "wt.exe");
+        bool useWt = System.IO.File.Exists(wt);
+        var psi = new ProcessStartInfo(useWt ? wt : claude) { WorkingDirectory = folder, UseShellExecute = false };
+        if (useWt) { psi.ArgumentList.Add("-d"); psi.ArgumentList.Add(folder); psi.ArgumentList.Add(claude); }
+        if (prompt.Length > 0) psi.ArgumentList.Add(useWt ? prompt.Replace(";", "\\;") : prompt); // ";" separa comandos no wt
+        try { Process.Start(psi)?.Dispose(); return null; }
+        catch (Exception ex) { return "Não consegui abrir o terminal: " + ex.Message; }
+    }
+
     static bool Alive(int pid)
     {
         try { using var p = Process.GetProcessById(pid); return !p.HasExited; } catch { return false; }

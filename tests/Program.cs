@@ -254,6 +254,10 @@ if (Environment.GetEnvironmentVariable("ORBI_WHISPER_MODEL") is { Length: > 0 } 
     if (!(lower.Contains("weather") && lower.Contains("today"))) failures.Add("voz: transcrição inesperada: " + heard);
 }
 
+// ---- Soltar arquivo numa sessão / nova sessão ----
+if (AgentHub.DropText(new[] { @"C:\proj\a.txt", @"C:\Meus Docs\b.png" }) != "C:\\proj\\a.txt \"C:\\Meus Docs\\b.png\" ") failures.Add("soltar: " + AgentHub.DropText(new[] { @"C:\proj\a.txt", @"C:\Meus Docs\b.png" }));
+if (hubT.Sessions["q1"].Cwd != "/p/app") failures.Add("sessão: pasta (cwd) " + hubT.Sessions["q1"].Cwd);
+
 // ---- Ordem das páginas (bolinhas) ----
 var po = PageOrder.Fix(new[] { "ai", "xyz", "ai", "notes" });
 if (po[0] != "ai" || po[1] != "notes" || po.Count != PageOrder.All.Length || po.Distinct().Count() != po.Count) failures.Add("páginas: conserto da ordem " + string.Join(",", po));

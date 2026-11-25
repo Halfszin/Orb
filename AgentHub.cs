@@ -8,7 +8,7 @@ public sealed class AgentHub
 {
     public sealed class Session
     {
-        public string Id = "", Project = "", Status = "";
+        public string Id = "", Project = "", Status = "", Cwd = "";
         public bool Busy;
         public DateTime Updated;
         public readonly List<FileEdit> Edits = new(); // diff ao vivo, como no coucou
@@ -58,6 +58,7 @@ public sealed class AgentHub
         string project = Path.GetFileName(Str(p, "cwd")?.TrimEnd('/', '\\') ?? "") is { Length: > 0 } name ? name : "Claude Code";
         if (!Sessions.TryGetValue(id, out var s)) Sessions[id] = s = new Session { Id = id };
         s.Project = project;
+        s.Cwd = Str(p, "cwd") ?? s.Cwd;
         s.Updated = DateTime.Now;
         LastSessionId = id;
         string? answer = null;
@@ -201,6 +202,10 @@ public sealed class AgentHub
     }
 
     static IEnumerable<string> Split(string? text) => string.IsNullOrEmpty(text) ? Array.Empty<string>() : text.TrimEnd('\n').Split('\n').Select(l => l.TrimEnd('\r'));
+
+    /// <summary>Arquivos soltos numa sessão: os caminhos como o terminal escreve quando você arrasta (com aspas se tiver espaço).</summary>
+    public static string DropText(IEnumerable<string> paths) =>
+        string.Join(" ", paths.Select(p => p.Contains(' ') ? $"\"{p}\"" : p)) + " ";
 
     public static string Describe(string tool, JsonNode? input, bool full = false)
     {

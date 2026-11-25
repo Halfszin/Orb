@@ -153,7 +153,7 @@
     <Border x:Name="Pill" Background="{DynamicResource N.Bg}" ClipToBounds="True" Width="120" Height="30"
             MouseEnter="Pill_MouseEnter" MouseLeave="Pill_MouseLeave"
             MouseLeftButtonDown="Pill_MouseLeftButtonDown" MouseMove="Pill_MouseMove" MouseLeftButtonUp="Pill_MouseLeftButtonUp"
-            AllowDrop="True" DragEnter="Pill_DragEnter" DragOver="Pill_DragOver" Drop="Pill_Drop" MouseWheel="Pill_MouseWheel">
+            AllowDrop="True" DragEnter="Pill_DragEnter" DragOver="Pill_DragOver" Drop="Pill_Drop" DragLeave="Pill_DragLeave" MouseWheel="Pill_MouseWheel">
         <Border.RenderTransform>
             <ScaleTransform x:Name="PillScale"/>
         </Border.RenderTransform>
@@ -223,7 +223,11 @@
                             <TextBlock x:Name="ClockFull" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
                         </StackPanel>
                         <!-- Páginas em cima: uma bolinha por página, na ordem das configurações; a rodinha do mouse também troca -->
-                    <StackPanel x:Name="TabBar" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <!-- Setas para a página anterior/seguinte, dos lados das bolinhas -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <Button x:Name="PagePrev" Style="{StaticResource IconBtn}" FontSize="11" Content="&#xE76B;" Click="PageArrow_Click" Tag="-1"
+                            ToolTip="Página anterior" AutomationProperties.Name="Página anterior"/>
+                    <StackPanel x:Name="TabBar" Orientation="Horizontal" VerticalAlignment="Center">
                         <RadioButton x:Name="TabHome" Style="{StaticResource Tab}" Content="&#xE80F;" Tag="home" IsChecked="True" Checked="Tab_Checked"
                                      ToolTip="Início" AutomationProperties.Name="Início" Margin="1,0"/>
                         <RadioButton Style="{StaticResource Tab}" Content="&#xE787;" Tag="calendar" Checked="Tab_Checked"
@@ -242,6 +246,9 @@
                                      ToolTip="Atalhos" AutomationProperties.Name="Atalhos" Margin="1,0"/>
                         <RadioButton x:Name="TabAi" Style="{StaticResource Tab}" Content="&#xE99A;" Tag="ai" Checked="Tab_Checked"
                                      ToolTip="Inteligência artificial" AutomationProperties.Name="IA" Margin="1,0"/>
+                    </StackPanel>
+                    <Button x:Name="PageNext" Style="{StaticResource IconBtn}" FontSize="11" Content="&#xE76C;" Click="PageArrow_Click" Tag="1"
+                            ToolTip="Próxima página" AutomationProperties.Name="Próxima página"/>
                     </StackPanel>
                     </DockPanel>
 
