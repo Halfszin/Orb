@@ -8,7 +8,7 @@ O **Orbi** é um notch para Windows 10/11, parecido com a Dynamic Island, no top
 - **Aberto** (mouse em cima): abas com avatar, música do Spotify, tarefas, calendário, notas, área de transferência, sistema, atalhos, clima, chat com IA e agentes do Claude Code.
 
 Este repositório tem a **versão em C#/WPF (v2.0.0)**. É a versão de antes da reescrita em Rust.
-- A versão em Rust (prévia, interface Slint, sem WebView) continua em outro repositório, **Halfszin/notch**, na pasta `rust/`, e é tocada em paralelo num outro chat.
+- A versão em Rust (prévia) continua em outro repositório, **Halfszin/notch**, na pasta `tauri/`: motor em Rust e tela em HTML/CSS/JS no Tauri (WebView2). A antiga interface em Slint (pasta `rust/`) foi removida. É tocada em paralelo num outro chat.
 - O dono fala português: responda, comente o código e escreva as mensagens de commit em português.
 
 ## Pedidos que valem sempre
