@@ -1,0 +1,1 @@
+janela=196808 perdeu=True voltou=True
